@@ -92,13 +92,6 @@ func getIndexHTML(games []game) ([]byte, error) {
 
 	data := gamesHtml{htmlGames}
 
-	for i, g := range htmlGames {
-		fmt.Println("i", i)
-		for j, h := range g.Games {
-			fmt.Println("j", j, "h.ID", h.ID)
-		}
-	}
-
 	name := path.Base(chessTemplate)
 	tmplt, err := template.New(name).ParseFiles(chessTemplate)
 	if err != nil {
