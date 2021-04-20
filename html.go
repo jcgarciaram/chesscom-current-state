@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	// chessTemplate = "chessTemplate.html"
-	chessTemplate = os.Getenv("HOME") + "/chessTemplate.html"
+	currDir, _    = os.Getwd()
+	chessTemplate = currDir + "/chessTemplate.html"
 )
 
 type gamesHtml struct {
