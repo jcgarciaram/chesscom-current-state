@@ -35,8 +35,8 @@ jobs:
         run: chmod 400 rsa.pem
 
       # restart service
-      # - name: remove chesscom-curr-state binary leftover from previous run in chesscom-curr-state EC2 instance
-      #   run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem ubuntu@3.16.25.37 'rm chesscom-curr-state || true'
+      - name: remove chesscom-curr-state binary leftover from previous run in chesscom-curr-state EC2 instance
+        run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem ubuntu@3.16.25.37 'rm chesscom-curr-state || true'
 
       - name: upload chesscom-curr-state binary
         run: sftp -oStrictHostKeyChecking=no -i ./rsa.pem ubuntu@3.16.25.37 <<< $'put ./cmd/chesscom-curr-state'
