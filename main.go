@@ -1,53 +1,77 @@
 package main
 
 import (
-	"fmt"
-	"image/color"
 	"log"
-	"os"
-	"strconv"
+	"net/http"
 	"strings"
-
-	"github.com/notnil/chess/image"
 )
 
-func main() {
-	pipoGambitGames, err := getUserGames("pipogambit")
+var (
+	users = []string{
+		"pipogambit",
+		"dalmu7",
+		"elcubanoaj",
+	}
+)
+
+func handler(w http.ResponseWriter, r *http.Request) {
+
+	allGames := []game{}
+	for _, user := range users {
+		games, err := getUserGames(user)
+		if err != nil {
+			continue
+		}
+		allGames = append(allGames, games...)
+	}
+
+	gameIDMap := make(map[string]struct{})
+	selectGames := []game{}
+	for _, game := range allGames {
+
+		gameURLSplit := strings.Split(game.URL, "/")
+		if len(gameURLSplit) == 0 {
+			continue
+		}
+
+		game.ID = gameURLSplit[len(gameURLSplit)-1]
+
+		_, ok := gameIDMap[game.URL]
+		if ok {
+			continue
+		}
+		gameIDMap[game.URL] = struct{}{}
+
+		usernamesFound := 0
+		for _, user := range users {
+			if strings.Contains(game.Black, user) {
+				usernamesFound++
+			}
+
+			if strings.Contains(game.White, user) {
+				usernamesFound++
+			}
+
+			if usernamesFound == 2 {
+				break
+			}
+		}
+
+		if usernamesFound == 2 {
+			selectGames = append(selectGames, game)
+		}
+
+	}
+
+	htmlBytes, err := getIndexHTML(selectGames)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	for _, game := range pipoGambitGames {
+	w.Write(htmlBytes)
+}
 
-		whiteSplit := strings.Split(game.White, "/")
-		white := whiteSplit[len(whiteSplit)-1]
-
-		blackSplit := strings.Split(game.Black, "/")
-		black := blackSplit[len(blackSplit)-1]
-
-		// create file
-		f, err := os.Create(fmt.Sprintf("/Users/jgarcia/Flourish/go/src/github.com/jcgarciaram/chess-curr-state/%s.svg", white+"_"+black+"_"+strconv.Itoa(game.StartTime)))
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer f.Close()
-
-		// default mark to not have any markings
-		yellow := color.RGBA{255, 255, 0, 1}
-		mark := image.MarkSquares(yellow)
-
-		// if at least one move has been made, mark the last move
-		moves := game.ChessGame.Moves()
-		if len(moves) > 0 {
-			lastMove := moves[len(moves)-1]
-			mark = image.MarkSquares(yellow, lastMove.S1(), lastMove.S2())
-		}
-
-		// write board SVG to file
-		board := game.ChessGame.Position().Board()
-		if err := image.SVG(f, board, mark); err != nil {
-			log.Fatal(err)
-		}
-	}
-
+func main() {
+	http.HandleFunc("/", handler)
+	log.Fatal(http.ListenAndServe(":8889", nil))
 }

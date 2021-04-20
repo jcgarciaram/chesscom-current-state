@@ -29,8 +29,9 @@ type game struct {
 	White        string `json:"white"`
 	Black        string `json:"black"`
 
-	// Calculated field
+	// Calculated fields
 	ChessGame *chess.Game `json:"-"`
+	ID        string      `json:"-"`
 }
 
 func getUserGames(username string) ([]game, error) {
