@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"image/color"
+	"os"
 	"path"
 	"strings"
 
@@ -13,8 +14,8 @@ import (
 )
 
 var (
-	chessTemplate = "chessTemplate.html"
-	// chessTemplate = os.Getenv("HOME") + "/chessTemplate.html"
+	// chessTemplate = "chessTemplate.html"
+	chessTemplate = os.Getenv("HOME") + "/chessTemplate.html"
 )
 
 type gamesHtml struct {
