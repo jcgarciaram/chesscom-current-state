@@ -41,5 +41,8 @@ jobs:
       - name: upload chesscom-curr-state binary
         run: sftp -oStrictHostKeyChecking=no -i ./rsa.pem ubuntu@3.16.25.37 <<< $'put ./cmd/chesscom-curr-state'
 
+      - name: upload chesscom-curr-state chessTemplate.html
+        run: sftp -oStrictHostKeyChecking=no -i ./rsa.pem ubuntu@3.16.25.37 <<< $'put ./chessTemplate.html'
+
       - name: restart chesscom-curr-state service
         run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem ubuntu@3.16.25.37 'sudo service chesscom-curr-state restart'
