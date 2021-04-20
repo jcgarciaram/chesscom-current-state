@@ -1,0 +1,45 @@
+name: DeployToEC2
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  linux:
+    name: Deploy latest chesscom-curr-state backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup go
+        uses: actions/setup-go@v1
+        with:
+          go-version: "^1.13.1" # The Go version to download (if necessary) and use.
+
+      # create cmd directory to store the built binaries
+      - name: create cmd directory to store the built binaries
+        run: mkdir cmd
+
+      # build binaries
+      - name: build chesscom-curr-state binary
+        run: go build -o cmd/chesscom-curr-state
+
+      # SSH pem file stuff
+      - name: create pem file from github secret to be used to SSH into thefancyapi EC2 instance
+        run: echo '${{ secrets.ACTIONS_PRIVATE_RSA_KEY }}' >> rsa.pem
+
+      - name: update permissions on pem file
+        run: chmod 400 rsa.pem
+
+      # restart service
+      - name: remove chesscom-curr-state binary leftover from previous run in chesscom-curr-state EC2 instance
+        run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem ubuntu@3.16.25.37 'rm chesscom-curr-state || true'
+
+      - name: upload chesscom-curr-state binary
+        run: sftp -oStrictHostKeyChecking=no -i ./rsa.pem ubuntu@3.16.25.37 <<< $'put ./cmd/chesscom-curr-state'
+
+      - name: restart chesscom-curr-state service
+        run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem ubuntu@3.16.25.37 'sudo service chesscom-curr-state restart'
