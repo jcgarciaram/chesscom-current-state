@@ -7,7 +7,6 @@ import (
 	"html/template"
 	"image/color"
 	"log"
-	"os"
 	"path"
 	"strings"
 
@@ -15,11 +14,16 @@ import (
 )
 
 var (
-	chessTemplate = os.Getenv("HOME") + "/chessTemplate.html"
+	chessTemplate = "chessTemplate.html"
+	// chessTemplate = os.Getenv("HOME") + "/chessTemplate.html"
 )
 
 type gamesHtml struct {
-	Games []*gameHtml
+	GameSlices []gameSlice
+}
+
+type gameSlice struct {
+	Games []gameHtml
 }
 
 type gameHtml struct {
@@ -31,8 +35,10 @@ type gameHtml struct {
 
 func getIndexHTML(games []game) ([]byte, error) {
 
-	htmlGames := make([]*gameHtml, len(games))
-	for i, game := range games {
+	htmlGames := make([]gameSlice, 0)
+	gamesInCurrentSlice := 0
+	currGameSlice := make([]gameHtml, 0)
+	for _, game := range games {
 
 		whiteSplit := strings.Split(game.White, "/")
 		white := whiteSplit[len(whiteSplit)-1]
@@ -63,15 +69,34 @@ func getIndexHTML(games []game) ([]byte, error) {
 
 		svgBase64 := base64.StdEncoding.EncodeToString(svgBytes)
 
-		htmlGames[i] = &gameHtml{
+		currGameSlice = append(currGameSlice, gameHtml{
 			Black: black,
 			White: white,
 			Image: svgBase64,
 			ID:    game.ID,
+		})
+		gamesInCurrentSlice++
+
+		if gamesInCurrentSlice == 3 {
+
+			tempGameSlice := gameSlice{
+				Games: currGameSlice,
+			}
+
+			htmlGames = append(htmlGames, tempGameSlice)
+			gamesInCurrentSlice = 0
+			currGameSlice = make([]gameHtml, 0)
 		}
 	}
 
 	data := gamesHtml{htmlGames}
+
+	for i, g := range htmlGames {
+		fmt.Println("i", i)
+		for j, h := range g.Games {
+			fmt.Println("j", j, "h.ID", h.ID)
+		}
+	}
 
 	name := path.Base(chessTemplate)
 	tmplt, err := template.New(name).ParseFiles(chessTemplate)

@@ -3,17 +3,51 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Chess Games</title>
+    <title>AJC Chess Club</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Karma">
+    <style>
+        body,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: "Karma", sans-serif
+        }
+
+        .w3-bar-block .w3-bar-item {
+            padding: 20px
+        }
+    </style>
 </head>
 
 <body>
-    {{range .Games}}
-    <div>
-        <p>Black: {{.Black}}</p>
-        <p><img src="data:image/svg+xml;base64,{{.Image}}"></p>
-        <p>White: {{.White}}</p>
+    <div class="w3-top">
+        <div class="w3-white w3-xlarge" style="max-width:1200px;margin:auto">
+            <div class="w3-button w3-padding-16 w3-left"></div>
+            <div class="w3-right w3-padding-16"></div>
+            <div class="w3-center w3-padding-16">AJC Chess Club</div>
+        </div>
     </div>
-    {{end}}
+
+    <div class="w3-main w3-content w3-padding" style="max-width:1200px;margin-top:100px">
+        {{range .GameSlices}}
+        <div class="w3-row-padding w3-padding-16 w3-center" id="games">
+            {{range .Games}}
+            <div class="w3-third">
+                <h3>Black: {{.Black}}</h3>
+                <img src="data:image/svg+xml;base64,{{.Image}}"></p>
+                <h3>White: {{.White}}</h3>
+            </div>
+            {{end}}
+        </div>
+        {{end}}
+    </div>
+
+
 </body>
 
 </html>
