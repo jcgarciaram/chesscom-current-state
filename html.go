@@ -98,7 +98,7 @@ func getIndexHTML(games []game) ([]byte, error) {
 	// which will be passed into the HTML template file,
 	// and build slices of 3 gaames at a time to be displayed
 	// in rows of 3 in the webpage.
-	for _, game := range games {
+	for i, game := range games {
 
 		// Get the gameHtml represenation
 		// which will be passed into the HTML template file
@@ -110,9 +110,11 @@ func getIndexHTML(games []game) ([]byte, error) {
 		// Append to the individual slice of games
 		currGameSlice = append(currGameSlice, gHtml)
 
-		// If the slice already has 3 games, append it to
+		// If the slice already has 3 games OR this is the last
+		// game being looked at, append it to
 		// the slice that contains all the slices, and reset
-		if len(currGameSlice) == 3 {
+		isLastGame := i == len(games)-1
+		if len(currGameSlice) == 3 || isLastGame {
 
 			tempGameSlice := gameSlice{
 				Games: currGameSlice,
