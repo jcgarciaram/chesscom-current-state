@@ -6,8 +6,10 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/notnil/chess"
 )
@@ -72,6 +74,14 @@ type chessComFinishedGame struct {
 	} `json:"black"`
 }
 
+type chessGamesByEndTimeDesc []chessGame
+
+func (a chessGamesByEndTimeDesc) Len() int      { return len(a) }
+func (a chessGamesByEndTimeDesc) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a chessGamesByEndTimeDesc) Less(i, j int) bool {
+	return a[i].PgnParsed.ParsedEndtime.After(a[j].PgnParsed.ParsedEndtime)
+}
+
 type chessGame struct {
 	ChessGame *chess.Game `json:"-"`
 	PgnParsed pgnParsed   `json:"-"`
@@ -100,6 +110,8 @@ type pgnParsed struct {
 	EndDate         string
 	EndTime         string
 	Link            string
+
+	ParsedEndtime time.Time
 }
 
 type archiveResponse struct {
@@ -296,12 +308,22 @@ func getChessGame(pgnString string) (chessGame, error) {
 		}
 		if key == "EndDate" {
 			parsedPgn.EndDate = val
+			fmt.Println(parsedPgn.EndDate)
 		}
 		if key == "EndTime" {
 			parsedPgn.EndTime = val
+			fmt.Println(parsedPgn.EndTime)
 		}
 		if key == "Link" {
 			parsedPgn.Link = val
+		}
+	}
+
+	if parsedPgn.EndDate != "" && parsedPgn.EndTime != "" {
+		format := "2006.01.02 15:04:05"
+		parsedEndTime, err := time.Parse(format, parsedPgn.EndDate+" "+parsedPgn.EndTime)
+		if err == nil {
+			parsedPgn.ParsedEndtime = parsedEndTime
 		}
 	}
 
@@ -363,14 +385,6 @@ func getFinishedGamesForUsers(users []string) ([]chessGame, []userStats) {
 
 func filterGamesForUsers(users []string, allGames []chessGame) ([]chessGame, []userStats) {
 
-	// Initialize userStats map to be returned
-	userStatsMap := make(map[string]userStats)
-	for _, user := range users {
-		userStatsMap[strings.ToLower(user)] = userStats{
-			User: user,
-		}
-	}
-
 	// Build a game ID map to keep track of games we have already seen.
 	// We only want to include unique games once.
 	gameIDMap := make(map[string]struct{})
@@ -388,10 +402,6 @@ func filterGamesForUsers(users []string, allGames []chessGame) ([]chessGame, []u
 			continue
 		}
 		gameIDMap[game.URL] = struct{}{}
-
-		// Get usernames
-		white := game.PgnParsed.White
-		black := game.PgnParsed.Black
 
 		// OK, so we have not seen this game before.
 		// Now let's check if it's a game between 2 users of the club.
@@ -415,30 +425,57 @@ func filterGamesForUsers(users []string, allGames []chessGame) ([]chessGame, []u
 		// If both Black and white are users in the club,
 		// then keep this game
 		if usernamesFound == 2 {
-			whiteStats := userStatsMap[strings.ToLower(white)]
-			blackStats := userStatsMap[strings.ToLower(black)]
-
-			if game.PgnParsed.Result == PgnResultWhiteWin {
-				whiteStats.Wins++
-				whiteStats.Points += 1
-				blackStats.Losses++
-			} else if game.PgnParsed.Result == PgnResultBlackWin {
-				whiteStats.Losses++
-				blackStats.Wins++
-				blackStats.Points += 1
-			} else if game.PgnParsed.Result == PgnResultDraw {
-				whiteStats.Draws++
-				whiteStats.Points += 0.5
-				blackStats.Draws++
-				blackStats.Points += 0.5
-			}
-
-			userStatsMap[strings.ToLower(white)] = whiteStats
-			userStatsMap[strings.ToLower(black)] = blackStats
-
 			selectGames = append(selectGames, game)
 		}
 
+	}
+
+	sort.Sort(chessGamesByEndTimeDesc(selectGames))
+
+	// Initialize userStats map to be returned
+	userStatsMap := make(map[string]userStats)
+	for _, user := range users {
+		userStatsMap[strings.ToLower(user)] = userStats{
+			User: user,
+		}
+	}
+
+	for _, game := range selectGames {
+
+		// Get usernames
+		white := game.PgnParsed.White
+		black := game.PgnParsed.Black
+
+		whiteStats := userStatsMap[strings.ToLower(white)]
+		blackStats := userStatsMap[strings.ToLower(black)]
+
+		if game.PgnParsed.Result == PgnResultWhiteWin {
+			whiteStats.Wins++
+			whiteStats.Points += 1
+			blackStats.Losses++
+
+			if whiteStats.Losses == 0 {
+				whiteStats.WinStreak++
+			}
+
+		} else if game.PgnParsed.Result == PgnResultBlackWin {
+			whiteStats.Losses++
+			blackStats.Wins++
+			blackStats.Points += 1
+
+			if blackStats.Losses == 0 {
+				blackStats.WinStreak++
+			}
+
+		} else if game.PgnParsed.Result == PgnResultDraw {
+			whiteStats.Draws++
+			whiteStats.Points += 0.5
+			blackStats.Draws++
+			blackStats.Points += 0.5
+		}
+
+		userStatsMap[strings.ToLower(white)] = whiteStats
+		userStatsMap[strings.ToLower(black)] = blackStats
 	}
 
 	statsSlice := make([]userStats, len(userStatsMap))

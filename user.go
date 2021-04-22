@@ -1,11 +1,12 @@
 package main
 
 type userStats struct {
-	User   string
-	Wins   int
-	Losses int
-	Draws  int
-	Points float64
+	User      string
+	Wins      int
+	Losses    int
+	Draws     int
+	Points    float64
+	WinStreak int
 }
 
 type userStatsByPointsDesc []userStats
