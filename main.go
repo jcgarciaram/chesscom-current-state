@@ -8,7 +8,7 @@ import (
 func handler(w http.ResponseWriter, r *http.Request) {
 
 	users := []string{
-		"pipogambit",
+		"PipoGambit",
 		"dalmu7",
 		"elcubanoaj",
 	}
@@ -26,10 +26,15 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	w.Write(htmlBytes)
 }
 
+func faviconHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, faviconFile)
+}
+
 func main() {
 	// Super simple web server.
 	// Only has a single handler which simply serves an html page.
 	http.HandleFunc("/", handler)
+	http.HandleFunc("/favicon.ico", faviconHandler)
 
 	// Listen for connections on port 8889
 	log.Fatal(http.ListenAndServe(":8889", nil))
