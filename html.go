@@ -6,50 +6,46 @@ import (
 	"fmt"
 	"html/template"
 	"image/color"
-	"os"
 	"path"
-	"strings"
 
 	"github.com/notnil/chess/image"
 )
 
 var (
-	// chessTemplate = "chessTemplate.html"
-	chessTemplate = os.Getenv("HOME") + "/chessTemplate.html"
+	chessTemplate = "chessTemplate.html"
+	// chessTemplate = os.Getenv("HOME") + "/chessTemplate.html"
 )
 
 // The following structs are a bit funky, but they were built this way
 // so that when passed to HTML template file, games can be displayed in groups of three.
 
-// gameSlices contains slices of games. These should ideally be in groups of 3.
-type gameSlices struct {
-	GameSlices []gameSlice
+// gameHTMLSlices contains slices of games. These should ideally be in groups of 3.
+type gameHTMLSlices struct {
+	CurrGameSlices     []gameHTMLSlice
+	FinishedGameSlices []gameHTMLSlice
 }
 
-// gameSlice contains the actual games.
-type gameSlice struct {
-	Games []gameHtml
+// gameHTMLSlice contains the actual games.
+type gameHTMLSlice struct {
+	Games []gameHTML
 }
 
-// gameHtml represents a single game
-type gameHtml struct {
+// gameHTML represents a single game
+type gameHTML struct {
 	Black string
 	White string
 	Image string
-	ID    string
 }
 
 // getGameHTML takes a game and converts into a gameHtml to be passed to
 // html template file.
-func getGameHTML(g game) (gameHtml, error) {
+func getGameHTML(g chessGame) (gameHTML, error) {
 
 	// Get white player
-	whiteSplit := strings.Split(g.White, "/")
-	white := whiteSplit[len(whiteSplit)-1]
+	white := g.PgnParsed.White
 
 	// Get black player
-	blackSplit := strings.Split(g.Black, "/")
-	black := blackSplit[len(blackSplit)-1]
+	black := g.PgnParsed.Black
 
 	// Mark will be used to represent the last move made.
 	// By default, there will be no markings.
@@ -69,36 +65,32 @@ func getGameHTML(g game) (gameHtml, error) {
 	// Write board SVG to buffer
 	board := g.ChessGame.Position().Board()
 	if err := image.SVG(&svgBuffer, board, mark); err != nil {
-		return gameHtml{}, fmt.Errorf("could not get svg file: %w", err)
+		return gameHTML{}, fmt.Errorf("could not get svg file: %w", err)
 	}
 
 	// Base64 encode the SVG image to be able to embed in HTML file
 	svgBytes := svgBuffer.Bytes()
 	svgBase64 := base64.StdEncoding.EncodeToString(svgBytes)
 
-	return gameHtml{
+	return gameHTML{
 		Black: black,
 		White: white,
 		Image: svgBase64,
-		ID:    g.ID,
 	}, nil
 }
 
-// getIndexHTML takes a slice of games and returns an HTML
-// webpage using chessTemplate.html as a template file.
-func getIndexHTML(currentGames []game, finishedGames []game) ([]byte, error) {
-
+func getGameHTMLSlice(games []chessGame) ([]gameHTMLSlice, error) {
 	// Slice which will contain the games slices
-	htmlGames := make([]gameSlice, 0)
+	htmlGames := make([]gameHTMLSlice, 0)
 
 	// Individual slice of games.
-	currGameSlice := make([]gameHtml, 0)
+	currGameSlice := make([]gameHTML, 0)
 
 	// Loop though games passed, get the gameHtml represenation
 	// which will be passed into the HTML template file,
 	// and build slices of 3 gaames at a time to be displayed
 	// in rows of 3 in the webpage.
-	for i, game := range currentGames {
+	for i, game := range games {
 
 		// Get the gameHtml represenation
 		// which will be passed into the HTML template file
@@ -113,21 +105,41 @@ func getIndexHTML(currentGames []game, finishedGames []game) ([]byte, error) {
 		// If the slice already has 3 games OR this is the last
 		// game being looked at, append it to
 		// the slice that contains all the slices, and reset
-		isLastGame := i == len(currentGames)-1
+		isLastGame := i == len(games)-1
 		if len(currGameSlice) == 3 || isLastGame {
 
-			tempGameSlice := gameSlice{
+			tempGameSlice := gameHTMLSlice{
 				Games: currGameSlice,
 			}
 
 			htmlGames = append(htmlGames, tempGameSlice)
-			currGameSlice = make([]gameHtml, 0)
+			currGameSlice = make([]gameHTML, 0)
 		}
+	}
+
+	return htmlGames, nil
+}
+
+// getIndexHTML takes a slice of games and returns an HTML
+// webpage using chessTemplate.html as a template file.
+func getIndexHTML(currentGames []chessGame, finishedGames []chessGame) ([]byte, error) {
+
+	currentGamesHTMLSlices, err := getGameHTMLSlice(currentGames)
+	if err != nil {
+		return nil, err
+	}
+
+	finishedGamesHTMLSlices, err := getGameHTMLSlice(finishedGames)
+	if err != nil {
+		return nil, err
 	}
 
 	// Initialize the gameSlices object which will be passed
 	// into the html template file
-	data := gameSlices{htmlGames}
+	data := gameHTMLSlices{
+		CurrGameSlices:     currentGamesHTMLSlices,
+		FinishedGameSlices: finishedGamesHTMLSlices,
+	}
 
 	// Parse the HTML template file
 	name := path.Base(chessTemplate)

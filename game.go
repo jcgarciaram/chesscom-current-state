@@ -4,20 +4,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/notnil/chess"
 )
 
 // Chess.com response when getting games for
 // an individual user.
-type userGames struct {
-	Games []game `json:"games"`
+type chessComCurrentUserGames struct {
+	Games []chessComCurrentGame `json:"games"`
 }
 
-// Chess.com game.
-type game struct {
+// Chess.com chessComCurrentGame.
+type chessComCurrentGame struct {
 	URL          string `json:"url"`
 	MoveBy       int    `json:"move_by"`
 	Pgn          string `json:"pgn"`
@@ -31,10 +33,63 @@ type game struct {
 	Rules        string `json:"rules"`
 	White        string `json:"white"`
 	Black        string `json:"black"`
+}
 
-	// Calculated fields
+// Chess.com response when getting games for
+// an individual user.
+type chessComFinishedUserGames struct {
+	Games []chessComFinishedGame `json:"games"`
+}
+
+type chessComFinishedGame struct {
+	URL         string `json:"url"`
+	Pgn         string `json:"pgn"`
+	TimeControl string `json:"time_control"`
+	EndTime     int    `json:"end_time"`
+	Rated       bool   `json:"rated"`
+	Fen         string `json:"fen"`
+	StartTime   int    `json:"start_time"`
+	TimeClass   string `json:"time_class"`
+	Rules       string `json:"rules"`
+	White       struct {
+		Rating   int    `json:"rating"`
+		Result   string `json:"result"`
+		ID       string `json:"@id"`
+		Username string `json:"username"`
+	} `json:"white"`
+	Black struct {
+		Rating   int    `json:"rating"`
+		Result   string `json:"result"`
+		ID       string `json:"@id"`
+		Username string `json:"username"`
+	} `json:"black"`
+}
+
+type chessGame struct {
 	ChessGame *chess.Game `json:"-"`
-	ID        string      `json:"-"`
+	PgnParsed pgnParsed   `json:"-"`
+	URL       string      `json:"-"`
+}
+
+type pgnParsed struct {
+	Event           string
+	Site            string
+	Date            string
+	Round           string
+	White           string
+	Black           string
+	Result          string
+	CurrentPosition string
+	Timezone        string
+	ECO             string
+	ECOUrl          string
+	UTCDate         string
+	UTCTime         string
+	WhiteElo        string
+	BlackElo        string
+	TimeControl     string
+	StartTime       string
+	Link            string
 }
 
 type archiveResponse struct {
@@ -44,119 +99,207 @@ type archiveResponse struct {
 // Call chess.com API to get the games for the passed username.
 // This function will also go ahead and reag the PGN for the game
 // and populate ChessGame field on game struct.
-func getUserUnfinishedGames(username string) ([]game, error) {
+func getUserUnfinishedGames(username string) ([]chessGame, error) {
 
 	// Get games from chess.com API
-	games := userGames{}
 	resp, err := http.Get(fmt.Sprintf("https://api.chess.com/pub/player/%s/games", username))
 	if err != nil {
-		return games.Games, fmt.Errorf("could not get games for username %s: %w", username, err)
+		return []chessGame{}, fmt.Errorf("could not get games for username %s: %w", username, err)
 	}
 
 	// get the response body
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return games.Games, fmt.Errorf("could not read response body for games for username %s: %w", username, err)
+		return []chessGame{}, fmt.Errorf("could not read response body for games for username %s: %w", username, err)
 	}
 
 	// Unmarshal response body to struct above
+	games := chessComCurrentUserGames{}
 	err = json.Unmarshal(respBody, &games)
 	if err != nil {
-		return games.Games, fmt.Errorf("could not read response body for games for username %s: %w", username, err)
+		return []chessGame{}, fmt.Errorf("could not read response body for games for username %s: %w", username, err)
 	}
 
+	chessGames := make([]chessGame, len(games.Games))
 	// Loop through all games and build a ChessGame from PGN.
 	for i := 0; i < len(games.Games); i++ {
-		chessGame, err := readPgn(games.Games[i].Pgn)
+		pgnChessGame, err := getChessGame(games.Games[i].Pgn)
 		if err != nil {
-			return games.Games, fmt.Errorf("could not read Pgn for game for username %s: %w", username, err)
+			return []chessGame{}, fmt.Errorf("could not read Pgn for game for username %s: %w", username, err)
 		}
 
-		games.Games[i].ChessGame = chessGame
+		pgnChessGame.URL = games.Games[i].URL
+
+		chessGames[i] = pgnChessGame
 	}
 
-	return games.Games, nil
+	return chessGames, nil
 }
 
 // Call chess.com API to get the finished games for the passed username.
 // This function will also go ahead and reag the PGN for the game
 // and populate ChessGame field on game struct.
-func getUserFinishedGames(username string) ([]game, error) {
+func getUserFinishedGames(username string) ([]chessGame, error) {
 
 	// Get archival url games from chess.com API
 	resp, err := http.Get(fmt.Sprintf("https://api.chess.com/pub/player/%s/games/archives", username))
 	if err != nil {
-		return []game{}, fmt.Errorf("could not get games for username %s: %w", username, err)
+		return []chessGame{}, fmt.Errorf("could not get games for username %s: %w", username, err)
 	}
 
 	// get the response body
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return []game{}, fmt.Errorf("could not read response body for games for username %s: %w", username, err)
+		return []chessGame{}, fmt.Errorf("could not read response body for games for username %s: %w", username, err)
 	}
 
 	// Unmarshal response body to struct above
 	archives := archiveResponse{}
 	err = json.Unmarshal(respBody, &archives)
 	if err != nil {
-		return []game{}, fmt.Errorf("could not read response body for games for username %s: %w", username, err)
+		return []chessGame{}, fmt.Errorf("could not read response body for games for username %s: %w", username, err)
 	}
 
-	games := []game{}
+	chessGames := []chessGame{}
+
+	wg := sync.WaitGroup{}
+	mutex := sync.Mutex{}
+
 	// Loop through all archive URLs and get all finished games
 	for _, archiveURL := range archives.Archives {
 
-		resp, err := http.Get(archiveURL)
-		if err != nil {
-			return []game{}, fmt.Errorf("could not get games for username %s: %w", username, err)
-		}
-
-		// get the response body
-		respBody, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return []game{}, fmt.Errorf("could not read response body for games for username %s: %w", username, err)
-		}
-
-		gamesForUser := userGames{}
-		// Unmarshal response body to struct above
-		err = json.Unmarshal(respBody, &gamesForUser)
-		if err != nil {
-			return []game{}, fmt.Errorf("could not read response body for games for username %s: %w", username, err)
-		}
-
-		// Loop through all games and build a ChessGame from PGN.
-		for i := 0; i < len(gamesForUser.Games); i++ {
-			chessGame, err := readPgn(gamesForUser.Games[i].Pgn)
+		wg.Add(1)
+		go func(url string) {
+			defer wg.Done()
+			resp, err := http.Get(url)
 			if err != nil {
-				return []game{}, fmt.Errorf("could not read Pgn for game for username %s: %w", username, err)
+				log.Printf("could not get games for username %s: %s", username, err)
+				return
 			}
 
-			gamesForUser.Games[i].ChessGame = chessGame
-		}
+			// get the response body
+			respBody, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				log.Printf("could not read response body for games for username %s: %s", username, err)
+				return
+			}
 
-		games = append(games, gamesForUser.Games...)
+			gamesForUser := chessComFinishedUserGames{}
+			// Unmarshal response body to struct above
+			err = json.Unmarshal(respBody, &gamesForUser)
+			if err != nil {
+				log.Printf("could not read response body for games for username %s: %s", username, err)
+				return
+			}
+
+			// Loop through all games and build a ChessGame from PGN.
+			for i := 0; i < len(gamesForUser.Games); i++ {
+				pgnChessGame, err := getChessGame(gamesForUser.Games[i].Pgn)
+				if err != nil {
+					log.Printf("could not read Pgn for game for username %s: %s", username, err)
+					return
+				}
+
+				pgnChessGame.URL = gamesForUser.Games[i].URL
+
+				mutex.Lock()
+				chessGames = append(chessGames, pgnChessGame)
+				mutex.Unlock()
+			}
+		}(archiveURL)
 	}
 
-	return games, nil
+	wg.Wait()
+
+	return chessGames, nil
 }
 
-// readPgn takes a PGN string and returns a chess.Game pointer.
-func readPgn(pgnString string) (*chess.Game, error) {
+// getChessGame takes a PGN string and returns a chess.Game pointer.
+func getChessGame(pgnString string) (chessGame, error) {
 	pgnReader := strings.NewReader(pgnString)
 	pgn, err := chess.PGN(pgnReader)
 	if err != nil {
-		return &chess.Game{}, fmt.Errorf("could not read pgn: %w", err)
+		return chessGame{}, fmt.Errorf("could not read pgn: %w", err)
 	}
 
-	return chess.NewGame(pgn), nil
+	parsedChessGame := chess.NewGame(pgn)
+
+	parsedPgn := pgnParsed{}
+	tagPairs := parsedChessGame.TagPairs()
+	for _, tagPair := range tagPairs {
+		key := tagPair.Key
+		val := tagPair.Value
+
+		if key == "Event" {
+			parsedPgn.Event = val
+		}
+		if key == "Site" {
+			parsedPgn.Site = val
+		}
+		if key == "Date" {
+			parsedPgn.Date = val
+		}
+		if key == "Round" {
+			parsedPgn.Round = val
+		}
+		if key == "White" {
+			parsedPgn.White = val
+		}
+		if key == "Black" {
+			parsedPgn.Black = val
+		}
+		if key == "Result" {
+			parsedPgn.Result = val
+		}
+		if key == "CurrentPosition" {
+			parsedPgn.CurrentPosition = val
+		}
+		if key == "Timezone" {
+			parsedPgn.Timezone = val
+		}
+		if key == "ECO" {
+			parsedPgn.ECO = val
+		}
+		if key == "ECOUrl" {
+			parsedPgn.ECOUrl = val
+		}
+		if key == "UTCDate" {
+			parsedPgn.UTCDate = val
+		}
+		if key == "UTCTime" {
+			parsedPgn.UTCTime = val
+		}
+		if key == "WhiteElo" {
+			parsedPgn.WhiteElo = val
+		}
+		if key == "BlackElo" {
+			parsedPgn.BlackElo = val
+		}
+		if key == "TimeControl" {
+			parsedPgn.TimeControl = val
+		}
+		if key == "StartTime" {
+			parsedPgn.StartTime = val
+		}
+		if key == "Link" {
+			parsedPgn.Link = val
+		}
+	}
+
+	game := chessGame{
+		ChessGame: parsedChessGame,
+		PgnParsed: parsedPgn,
+	}
+
+	return game, nil
 }
 
-func getUnfinishedGamesForUsers(users []string) []game {
+func getUnfinishedGamesForUsers(users []string) []chessGame {
 	// Loop through all users that are in the chess club
 	// and get all their current games.
 	// This will include games against players not in the club
 	// which will be filtered out later.
-	allGames := []game{}
+	allGames := []chessGame{}
 	for _, user := range users {
 		games, err := getUserUnfinishedGames(user)
 		if err != nil {
@@ -168,24 +311,38 @@ func getUnfinishedGamesForUsers(users []string) []game {
 	return filterGamesForUsers(users, allGames)
 }
 
-func getFinishedGamesForUsers(users []string) []game {
+func getFinishedGamesForUsers(users []string) []chessGame {
 	// Loop through all users that are in the chess club
 	// and get all their finished games.
 	// This will include games against players not in the club
 	// which will be filtered out later.
-	allGames := []game{}
+	allGames := []chessGame{}
+
+	wg := sync.WaitGroup{}
+	mutex := sync.Mutex{}
 	for _, user := range users {
-		games, err := getUserFinishedGames(user)
-		if err != nil {
-			continue
-		}
-		allGames = append(allGames, games...)
+		wg.Add(1)
+
+		go func(u string) {
+			defer wg.Done()
+			games, err := getUserFinishedGames(u)
+			if err != nil {
+
+				log.Printf("%s\n", err)
+				return
+			}
+			mutex.Lock()
+			allGames = append(allGames, games...)
+			mutex.Unlock()
+		}(user)
 	}
+
+	wg.Wait()
 
 	return filterGamesForUsers(users, allGames)
 }
 
-func filterGamesForUsers(users []string, allGames []game) []game {
+func filterGamesForUsers(users []string, allGames []chessGame) []chessGame {
 
 	// Build a game ID map to keep track of games we have already seen.
 	// We only want to include unique games once.
@@ -194,17 +351,8 @@ func filterGamesForUsers(users []string, allGames []game) []game {
 	// Loop through all the games and only keep those which are
 	// between two members of the club.
 	// Store these in selectGames.
-	selectGames := []game{}
+	selectGames := []chessGame{}
 	for _, game := range allGames {
-
-		// While we're looping, go ahead and split the
-		// game URL to get the ID
-		gameURLSplit := strings.Split(game.URL, "/")
-		if len(gameURLSplit) == 0 {
-			continue
-		}
-
-		game.ID = gameURLSplit[len(gameURLSplit)-1]
 
 		// Verify if we have seen this game before.
 		// If we have, continue with the next gaae
@@ -220,11 +368,11 @@ func filterGamesForUsers(users []string, allGames []game) []game {
 		// see if Black AND White is a user in the club.
 		usernamesFound := 0
 		for _, user := range users {
-			if strings.Contains(game.Black, user) {
+			if strings.EqualFold(game.PgnParsed.Black, user) {
 				usernamesFound++
 			}
 
-			if strings.Contains(game.White, user) {
+			if strings.EqualFold(game.PgnParsed.White, user) {
 				usernamesFound++
 			}
 

@@ -32,7 +32,23 @@
     </div>
 
     <div class="w3-main w3-content w3-padding" style="max-width:1200px;margin-top:100px">
-        {{range .GameSlices}}
+        <h1>Current Games</h1>
+        {{range .CurrGameSlices}}
+        <div class="w3-row-padding w3-padding-16 w3-center" id="games">
+            {{range .Games}}
+            <div class="w3-third">
+                <h3>{{.Black}}</h3>
+                <img src="data:image/svg+xml;base64,{{.Image}}"></p>
+                <h3>{{.White}}</h3>
+            </div>
+            {{end}}
+        </div>
+        {{end}}
+    </div>
+
+    <div class="w3-main w3-content w3-padding" style="max-width:1200px;margin-top:100px">
+        <h1>Finished Games</h1>
+        {{range .FinishedGameSlices}}
         <div class="w3-row-padding w3-padding-16 w3-center" id="games">
             {{range .Games}}
             <div class="w3-third">
