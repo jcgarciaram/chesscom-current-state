@@ -6,14 +6,15 @@ import (
 	"fmt"
 	"html/template"
 	"image/color"
+	"os"
 	"path"
 
 	"github.com/notnil/chess/image"
 )
 
 var (
-	chessTemplate = "chessTemplate.html"
-	// chessTemplate = os.Getenv("HOME") + "/chessTemplate.html"
+	// chessTemplate = "chessTemplate.html"
+	chessTemplate = os.Getenv("HOME") + "/chessTemplate.html"
 )
 
 // The following structs are a bit funky, but they were built this way
