@@ -86,7 +86,7 @@ func getGameHTML(g game) (gameHtml, error) {
 
 // getIndexHTML takes a slice of games and returns an HTML
 // webpage using chessTemplate.html as a template file.
-func getIndexHTML(games []game) ([]byte, error) {
+func getIndexHTML(currentGames []game, finishedGames []game) ([]byte, error) {
 
 	// Slice which will contain the games slices
 	htmlGames := make([]gameSlice, 0)
@@ -98,7 +98,7 @@ func getIndexHTML(games []game) ([]byte, error) {
 	// which will be passed into the HTML template file,
 	// and build slices of 3 gaames at a time to be displayed
 	// in rows of 3 in the webpage.
-	for i, game := range games {
+	for i, game := range currentGames {
 
 		// Get the gameHtml represenation
 		// which will be passed into the HTML template file
@@ -113,7 +113,7 @@ func getIndexHTML(games []game) ([]byte, error) {
 		// If the slice already has 3 games OR this is the last
 		// game being looked at, append it to
 		// the slice that contains all the slices, and reset
-		isLastGame := i == len(games)-1
+		isLastGame := i == len(currentGames)-1
 		if len(currGameSlice) == 3 || isLastGame {
 
 			tempGameSlice := gameSlice{
