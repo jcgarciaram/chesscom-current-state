@@ -11,6 +11,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		"PipoGambit",
 		"dalmu7",
 		"elcubanoaj",
+		"cdalmeida",
 	}
 
 	unfinishedGames, _ := getUnfinishedGamesForUsers(users)
