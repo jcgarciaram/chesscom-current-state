@@ -8,6 +8,7 @@ import (
 	"image/color"
 	"os"
 	"path"
+	"sort"
 
 	"github.com/notnil/chess/image"
 )
@@ -20,10 +21,11 @@ var (
 // The following structs are a bit funky, but they were built this way
 // so that when passed to HTML template file, games can be displayed in groups of three.
 
-// gameHTMLSlices contains slices of games. These should ideally be in groups of 3.
-type gameHTMLSlices struct {
+// htmlData has all the data needed to build out the html template.
+type htmlData struct {
 	CurrGameSlices     []gameHTMLSlice
 	FinishedGameSlices []gameHTMLSlice
+	Stats              []userStats
 }
 
 // gameHTMLSlice contains the actual games.
@@ -123,7 +125,7 @@ func getGameHTMLSlice(games []chessGame) ([]gameHTMLSlice, error) {
 
 // getIndexHTML takes a slice of games and returns an HTML
 // webpage using chessTemplate.html as a template file.
-func getIndexHTML(currentGames []chessGame, finishedGames []chessGame) ([]byte, error) {
+func getIndexHTML(currentGames []chessGame, finishedGames []chessGame, stats []userStats) ([]byte, error) {
 
 	currentGamesHTMLSlices, err := getGameHTMLSlice(currentGames)
 	if err != nil {
@@ -135,11 +137,14 @@ func getIndexHTML(currentGames []chessGame, finishedGames []chessGame) ([]byte, 
 		return nil, err
 	}
 
+	sort.Sort(userStatsByPointsDesc(stats))
+
 	// Initialize the gameSlices object which will be passed
 	// into the html template file
-	data := gameHTMLSlices{
+	data := htmlData{
 		CurrGameSlices:     currentGamesHTMLSlices,
 		FinishedGameSlices: finishedGamesHTMLSlices,
+		Stats:              stats,
 	}
 
 	// Parse the HTML template file

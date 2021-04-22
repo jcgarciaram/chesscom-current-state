@@ -13,11 +13,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		"elcubanoaj",
 	}
 
-	unfinishedGames := getUnfinishedGamesForUsers(users)
-	finishedGames := getFinishedGamesForUsers(users)
+	unfinishedGames, _ := getUnfinishedGamesForUsers(users)
+	finishedGames, stats := getFinishedGamesForUsers(users)
 
 	// Finally, get HTML page to display the selectGames
-	htmlBytes, err := getIndexHTML(unfinishedGames, finishedGames)
+	htmlBytes, err := getIndexHTML(unfinishedGames, finishedGames, stats)
 	if err != nil {
 		log.Fatal(err)
 	}

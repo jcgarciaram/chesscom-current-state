@@ -12,6 +12,13 @@ import (
 	"github.com/notnil/chess"
 )
 
+const (
+	PgnResultWhiteWin   = "1-0"
+	PgnResultBlackWin   = "0-1"
+	PgnResultDraw       = "1/2-1/2"
+	PgnResultInProgress = "*"
+)
+
 // Chess.com response when getting games for
 // an individual user.
 type chessComCurrentUserGames struct {
@@ -88,7 +95,10 @@ type pgnParsed struct {
 	WhiteElo        string
 	BlackElo        string
 	TimeControl     string
+	Termination     string
 	StartTime       string
+	EndDate         string
+	EndTime         string
 	Link            string
 }
 
@@ -278,8 +288,17 @@ func getChessGame(pgnString string) (chessGame, error) {
 		if key == "TimeControl" {
 			parsedPgn.TimeControl = val
 		}
+		if key == "Termination" {
+			parsedPgn.Termination = val
+		}
 		if key == "StartTime" {
 			parsedPgn.StartTime = val
+		}
+		if key == "EndDate" {
+			parsedPgn.EndDate = val
+		}
+		if key == "EndTime" {
+			parsedPgn.EndTime = val
 		}
 		if key == "Link" {
 			parsedPgn.Link = val
@@ -294,7 +313,7 @@ func getChessGame(pgnString string) (chessGame, error) {
 	return game, nil
 }
 
-func getUnfinishedGamesForUsers(users []string) []chessGame {
+func getUnfinishedGamesForUsers(users []string) ([]chessGame, []userStats) {
 	// Loop through all users that are in the chess club
 	// and get all their current games.
 	// This will include games against players not in the club
@@ -311,7 +330,7 @@ func getUnfinishedGamesForUsers(users []string) []chessGame {
 	return filterGamesForUsers(users, allGames)
 }
 
-func getFinishedGamesForUsers(users []string) []chessGame {
+func getFinishedGamesForUsers(users []string) ([]chessGame, []userStats) {
 	// Loop through all users that are in the chess club
 	// and get all their finished games.
 	// This will include games against players not in the club
@@ -342,7 +361,15 @@ func getFinishedGamesForUsers(users []string) []chessGame {
 	return filterGamesForUsers(users, allGames)
 }
 
-func filterGamesForUsers(users []string, allGames []chessGame) []chessGame {
+func filterGamesForUsers(users []string, allGames []chessGame) ([]chessGame, []userStats) {
+
+	// Initialize userStats map to be returned
+	userStatsMap := make(map[string]userStats)
+	for _, user := range users {
+		userStatsMap[strings.ToLower(user)] = userStats{
+			User: user,
+		}
+	}
 
 	// Build a game ID map to keep track of games we have already seen.
 	// We only want to include unique games once.
@@ -361,6 +388,10 @@ func filterGamesForUsers(users []string, allGames []chessGame) []chessGame {
 			continue
 		}
 		gameIDMap[game.URL] = struct{}{}
+
+		// Get usernames
+		white := game.PgnParsed.White
+		black := game.PgnParsed.Black
 
 		// OK, so we have not seen this game before.
 		// Now let's check if it's a game between 2 users of the club.
@@ -384,10 +415,38 @@ func filterGamesForUsers(users []string, allGames []chessGame) []chessGame {
 		// If both Black and white are users in the club,
 		// then keep this game
 		if usernamesFound == 2 {
+			whiteStats := userStatsMap[strings.ToLower(white)]
+			blackStats := userStatsMap[strings.ToLower(black)]
+
+			if game.PgnParsed.Result == PgnResultWhiteWin {
+				whiteStats.Wins++
+				whiteStats.Points += 1
+				blackStats.Losses++
+			} else if game.PgnParsed.Result == PgnResultBlackWin {
+				whiteStats.Losses++
+				blackStats.Wins++
+				blackStats.Points += 1
+			} else if game.PgnParsed.Result == PgnResultDraw {
+				whiteStats.Draws++
+				whiteStats.Points += 0.5
+				blackStats.Draws++
+				blackStats.Points += 0.5
+			}
+
+			userStatsMap[strings.ToLower(white)] = whiteStats
+			userStatsMap[strings.ToLower(black)] = blackStats
+
 			selectGames = append(selectGames, game)
 		}
 
 	}
 
-	return selectGames
+	statsSlice := make([]userStats, len(userStatsMap))
+	index := 0
+	for _, stats := range userStatsMap {
+		statsSlice[index] = stats
+		index++
+	}
+
+	return selectGames, statsSlice
 }
