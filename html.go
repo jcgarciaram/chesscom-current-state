@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"image/color"
+	"os"
 	"path"
 	"sort"
 
@@ -13,10 +14,10 @@ import (
 )
 
 var (
-	chessTemplate = "chessTemplate.html"
-	faviconFile   = "favicon.ico"
-	// chessTemplate = os.Getenv("HOME") + "/chessTemplate.html"
-	// faviconFile = os.Getenv("HOME") + "/favicon.ico"
+	// chessTemplate = "chessTemplate.html"
+	// faviconFile   = "favicon.ico"
+	chessTemplate = os.Getenv("HOME") + "/chessTemplate.html"
+	faviconFile   = os.Getenv("HOME") + "/favicon.ico"
 )
 
 // The following structs are a bit funky, but they were built this way
