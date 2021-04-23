@@ -57,18 +57,18 @@
             {{if lt $iPlus1 $length}}
             <div class="w3-third">
                 {{ $game := index $chessGames $iPlus1}}
-                <h3>{{$game.PgnParsed.Black}}{{if $game.PgnParsed.BlackWon}} &#128081;{{end}}</h3>
+                <h3>{{$game.PgnParsed.Black}}</h3>
                 <img src="data:image/svg+xml;base64,{{$game.Image}}"></p>
-                <h3>{{$game.PgnParsed.White}}{{if $game.PgnParsed.WhiteWon}} &#128081;{{end}}</h3>
+                <h3>{{$game.PgnParsed.White}}</h3>
             </div>
             {{end}}
             {{ $iPlus2 := add $i 2 }}
             {{if lt $iPlus2 $length}}
             <div class="w3-third">
                 {{ $game := index $chessGames $iPlus2}}
-                <h3>{{$game.PgnParsed.Black}}{{if $game.PgnParsed.BlackWon}} &#128081;{{end}}</h3>
+                <h3>{{$game.PgnParsed.Black}}</h3>
                 <img src="data:image/svg+xml;base64,{{$game.Image}}"></p>
-                <h3>{{$game.PgnParsed.White}}{{if $game.PgnParsed.WhiteWon}} &#128081;{{end}}</h3>
+                <h3>{{$game.PgnParsed.White}}</h3>
             </div>
             {{end}}
             {{end}}
@@ -115,33 +115,69 @@
             {{if lt $i $length}}
             <div class="w3-third">
                 {{ $game := index $chessGames $i}}
-                <h3>{{$game.PgnParsed.Black}}{{if $game.PgnParsed.BlackWon}} &#128081;{{end}}</h3>
+                <h3>{{$game.PgnParsed.Black}}
+                    {{if $game.PgnParsed.BlackWon}} &#128081;{{end}}
+                    {{if $game.PgnParsed.BlackResigned}} &#127987;&#65039;{{end}}
+                    {{if $game.PgnParsed.BlackWasCheckmated}} &#129301;{{end}}
+                    {{if $game.PgnParsed.BlackTimedOut}} &#9201;&#65039;{{end}}
+                    {{if $game.PgnParsed.Draw}} &#129309;{{end}}
+                </h3>
                 <p>{{$game.ChessComFinishedGame.Black.Result}}</p>
                 <img src="data:image/svg+xml;base64,{{$game.Image}}"></p>
                 <p>{{$game.ChessComFinishedGame.White.Result}}</p>
-                <h3>{{$game.PgnParsed.White}}{{if $game.PgnParsed.WhiteWon}} &#128081;{{end}}</h3>
+                <h3>{{$game.PgnParsed.White}}
+                    {{if $game.PgnParsed.WhiteWon}} &#128081;{{end}}
+                    {{if $game.PgnParsed.WhiteResigned}} &#127987;&#65039;{{end}}
+                    {{if $game.PgnParsed.WhiteWasCheckmated}} &#129301;{{end}}
+                    {{if $game.PgnParsed.WhiteTimedOut}} &#9201;&#65039;{{end}}
+                    {{if $game.PgnParsed.Draw}} &#129309;{{end}}
+                </h3>
             </div>
             {{end}}
             {{ $iPlus1 := add $i 1 }}
             {{if lt $iPlus1 $length}}
             <div class="w3-third">
                 {{ $game := index $chessGames $iPlus1}}
-                <h3>{{$game.PgnParsed.Black}}{{if $game.PgnParsed.BlackWon}} &#128081;{{end}}</h3>
+                <h3>{{$game.PgnParsed.Black}}
+                    {{if $game.PgnParsed.BlackWon}} &#128081;{{end}}
+                    {{if $game.PgnParsed.BlackResigned}} &#127987;&#65039;{{end}}
+                    {{if $game.PgnParsed.BlackWasCheckmated}} &#129301;{{end}}
+                    {{if $game.PgnParsed.BlackTimedOut}} &#9201;&#65039;{{end}}
+                    {{if $game.PgnParsed.Draw}} &#129309;{{end}}
+                </h3>
                 <p>{{$game.ChessComFinishedGame.Black.Result}}</p>
                 <img src="data:image/svg+xml;base64,{{$game.Image}}"></p>
                 <p>{{$game.ChessComFinishedGame.White.Result}}</p>
-                <h3>{{$game.PgnParsed.White}}{{if $game.PgnParsed.WhiteWon}} &#128081;{{end}}</h3>
+                <h3>{{$game.PgnParsed.White}}
+                    {{if $game.PgnParsed.WhiteWon}} &#128081;{{end}}
+                    {{if $game.PgnParsed.WhiteResigned}} &#127987;&#65039;{{end}}
+                    {{if $game.PgnParsed.WhiteWasCheckmated}} &#129301;{{end}}
+                    {{if $game.PgnParsed.WhiteTimedOut}} &#9201;&#65039;{{end}}
+                    {{if $game.PgnParsed.Draw}} &#129309;{{end}}
+                </h3>
             </div>
             {{end}}
             {{ $iPlus2 := add $i 2 }}
             {{if lt $iPlus2 $length}}
             <div class="w3-third">
                 {{ $game := index $chessGames $iPlus2}}
-                <h3>{{$game.PgnParsed.Black}}{{if $game.PgnParsed.BlackWon}} &#128081;{{end}}</h3>
+                <h3>{{$game.PgnParsed.Black}}
+                    {{if $game.PgnParsed.BlackWon}} &#128081;{{end}}
+                    {{if $game.PgnParsed.BlackResigned}} &#127987;&#65039;{{end}}
+                    {{if $game.PgnParsed.BlackWasCheckmated}} &#129301;{{end}}
+                    {{if $game.PgnParsed.BlackTimedOut}} &#9201;&#65039;{{end}}
+                    {{if $game.PgnParsed.Draw}} &#129309;{{end}}
+                </h3>
                 <p>{{$game.ChessComFinishedGame.Black.Result}}</p>
                 <img src="data:image/svg+xml;base64,{{$game.Image}}"></p>
                 <p>{{$game.ChessComFinishedGame.White.Result}}</p>
-                <h3>{{$game.PgnParsed.White}}{{if $game.PgnParsed.WhiteWon}} &#128081;{{end}}</h3>
+                <h3>{{$game.PgnParsed.White}}
+                    {{if $game.PgnParsed.WhiteWon}} &#128081;{{end}}
+                    {{if $game.PgnParsed.WhiteResigned}} &#127987;&#65039;{{end}}
+                    {{if $game.PgnParsed.WhiteWasCheckmated}} &#129301;{{end}}
+                    {{if $game.PgnParsed.WhiteTimedOut}} &#9201;&#65039;{{end}}
+                    {{if $game.PgnParsed.Draw}} &#129309;{{end}}
+                </h3>
             </div>
             {{end}}
         </div>

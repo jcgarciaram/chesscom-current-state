@@ -25,6 +25,11 @@ const (
 	PgnResultBlackWin   = "0-1"
 	PgnResultDraw       = "1/2-1/2"
 	PgnResultInProgress = "*"
+
+	ChessComResultWin        = "win"
+	ChessComResultCheckmated = "checkmated"
+	ChessComResultResigned   = "resigned"
+	ChessComResultTimeout    = "timeout"
 )
 
 // Chess.com response when getting games for
@@ -119,9 +124,17 @@ type pgnParsed struct {
 	EndTime         string
 	Link            string
 
-	ParsedEndtime time.Time
-	WhiteWon      bool
-	BlackWon      bool
+	// Calculated fields
+	ParsedEndtime      time.Time
+	WhiteWon           bool
+	BlackWon           bool
+	WhiteWasCheckmated bool
+	BlackWasCheckmated bool
+	WhiteResigned      bool
+	BlackResigned      bool
+	WhiteTimedOut      bool
+	BlackTimedOut      bool
+	Draw               bool
 }
 
 type archiveResponse struct {
@@ -236,6 +249,32 @@ func getUserFinishedGames(username string) ([]chessGame, error) {
 				if err != nil {
 					log.Printf("could not read Pgn for game for username %s: %s", username, err)
 					return
+				}
+
+				// Set boolean fields for HTML rendering for black
+				if gamesForUser.Games[i].Black.Result == ChessComResultWin {
+					pgnChessGame.PgnParsed.BlackWon = true
+				} else if gamesForUser.Games[i].Black.Result == ChessComResultCheckmated {
+					pgnChessGame.PgnParsed.BlackWasCheckmated = true
+				} else if gamesForUser.Games[i].Black.Result == ChessComResultResigned {
+					pgnChessGame.PgnParsed.BlackResigned = true
+				} else if gamesForUser.Games[i].Black.Result == ChessComResultTimeout {
+					pgnChessGame.PgnParsed.BlackTimedOut = true
+				}
+
+				// Set boolean fields for HTML rendering for white
+				if gamesForUser.Games[i].White.Result == ChessComResultWin {
+					pgnChessGame.PgnParsed.WhiteWon = true
+				} else if gamesForUser.Games[i].White.Result == ChessComResultCheckmated {
+					pgnChessGame.PgnParsed.WhiteWasCheckmated = true
+				} else if gamesForUser.Games[i].White.Result == ChessComResultResigned {
+					pgnChessGame.PgnParsed.WhiteResigned = true
+				} else if gamesForUser.Games[i].White.Result == ChessComResultTimeout {
+					pgnChessGame.PgnParsed.WhiteTimedOut = true
+				}
+
+				if pgnChessGame.PgnParsed.Result == PgnResultDraw {
+					pgnChessGame.PgnParsed.Draw = true
 				}
 
 				pgnChessGame.ChessComFinishedGame = &gamesForUser.Games[i]
