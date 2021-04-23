@@ -1,17 +1,23 @@
 package main
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"image/color"
 	"io/ioutil"
 	"log"
+	"math"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/notnil/chess"
+	"github.com/notnil/chess/image"
 )
 
 const (
@@ -86,6 +92,7 @@ type chessGame struct {
 	ChessGame *chess.Game `json:"-"`
 	PgnParsed pgnParsed   `json:"-"`
 	URL       string      `json:"-"`
+	Image     string      `json:"-"`
 }
 
 type pgnParsed struct {
@@ -112,6 +119,8 @@ type pgnParsed struct {
 	Link            string
 
 	ParsedEndtime time.Time
+	WhiteWon      bool
+	BlackWon      bool
 }
 
 type archiveResponse struct {
@@ -325,6 +334,12 @@ func getChessGame(pgnString string) (chessGame, error) {
 		}
 	}
 
+	if parsedPgn.Result == PgnResultWhiteWin {
+		parsedPgn.WhiteWon = true
+	} else if parsedPgn.Result == PgnResultBlackWin {
+		parsedPgn.BlackWon = true
+	}
+
 	game := chessGame{
 		ChessGame: parsedChessGame,
 		PgnParsed: parsedPgn,
@@ -333,7 +348,27 @@ func getChessGame(pgnString string) (chessGame, error) {
 	return game, nil
 }
 
-func getUnfinishedGamesForUsers(users []string) ([]chessGame, []userStats) {
+type gameGroup struct {
+	Month          time.Month
+	Year           int
+	ChessGames     []chessGame
+	UserStatistics []userStats
+}
+
+type gameGroupsByYearMonthDesc []gameGroup
+
+func (a gameGroupsByYearMonthDesc) Len() int      { return len(a) }
+func (a gameGroupsByYearMonthDesc) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a gameGroupsByYearMonthDesc) Less(i, j int) bool {
+
+	if a[i].Year == a[j].Year {
+		return a[i].Month > a[j].Month
+	}
+
+	return a[i].Year > a[j].Year
+}
+
+func getUnfinishedGamesForUsers(users []string) []gameGroup {
 	// Loop through all users that are in the chess club
 	// and get all their current games.
 	// This will include games against players not in the club
@@ -347,10 +382,10 @@ func getUnfinishedGamesForUsers(users []string) ([]chessGame, []userStats) {
 		allGames = append(allGames, games...)
 	}
 
-	return filterGamesForUsers(users, allGames)
+	return groupGamesForUsersByMonth(users, allGames)
 }
 
-func getFinishedGamesForUsers(users []string) ([]chessGame, []userStats) {
+func getFinishedGamesForUsers(users []string) []gameGroup {
 	// Loop through all users that are in the chess club
 	// and get all their finished games.
 	// This will include games against players not in the club
@@ -378,10 +413,10 @@ func getFinishedGamesForUsers(users []string) ([]chessGame, []userStats) {
 
 	wg.Wait()
 
-	return filterGamesForUsers(users, allGames)
+	return groupGamesForUsersByMonth(users, allGames)
 }
 
-func filterGamesForUsers(users []string, allGames []chessGame) ([]chessGame, []userStats) {
+func groupGamesForUsersByMonth(users []string, allGames []chessGame) []gameGroup {
 
 	// Build a game ID map to keep track of games we have already seen.
 	// We only want to include unique games once.
@@ -430,15 +465,44 @@ func filterGamesForUsers(users []string, allGames []chessGame) ([]chessGame, []u
 
 	sort.Sort(chessGamesByEndTimeDesc(selectGames))
 
-	// Initialize userStats map to be returned
-	userStatsMap := make(map[string]userStats)
-	for _, user := range users {
-		userStatsMap[strings.ToLower(user)] = userStats{
-			User: user,
-		}
+	type gameGroupWithStatsMap struct {
+		gameGroup
+		userStatsMap map[string]userStats
 	}
 
+	var err error
+	gameGroupMap := make(map[string]gameGroupWithStatsMap)
 	for _, game := range selectGames {
+
+		game.Image, err = getGameImage(game)
+		if err != nil {
+			log.Printf("could not get game image: %s\n", err)
+		}
+
+		month := game.PgnParsed.ParsedEndtime.Month()
+		year := game.PgnParsed.ParsedEndtime.Year()
+
+		key := strconv.Itoa(year) + strconv.Itoa(int(month))
+		group, ok := gameGroupMap[key]
+		if !ok {
+
+			// Initialize userStats map to be returned
+			userStatsMap := make(map[string]userStats)
+			for _, user := range users {
+				userStatsMap[strings.ToLower(user)] = userStats{
+					User: user,
+				}
+			}
+
+			group = gameGroupWithStatsMap{
+				gameGroup: gameGroup{
+					Month: month,
+					Year:  year,
+				},
+				userStatsMap: userStatsMap,
+			}
+		}
+		userStatsMap := group.userStatsMap
 
 		// Get usernames
 		white := game.PgnParsed.White
@@ -474,14 +538,73 @@ func filterGamesForUsers(users []string, allGames []chessGame) ([]chessGame, []u
 
 		userStatsMap[strings.ToLower(white)] = whiteStats
 		userStatsMap[strings.ToLower(black)] = blackStats
+
+		group.ChessGames = append(group.ChessGames, game)
+		group.userStatsMap = userStatsMap
+		gameGroupMap[key] = group
 	}
 
-	statsSlice := make([]userStats, len(userStatsMap))
-	index := 0
-	for _, stats := range userStatsMap {
-		statsSlice[index] = stats
-		index++
+	gameGroupSlice := make([]gameGroup, len(gameGroupMap))
+	groupIndex := 0
+	for _, group := range gameGroupMap {
+
+		statsSlice := make([]userStats, 0)
+		for _, stats := range group.userStatsMap {
+
+			totalGamesPlayed := float64(stats.Wins) + float64(stats.Losses) + float64(stats.Draws)
+
+			if totalGamesPlayed == 0 {
+				continue
+			}
+
+			wins := float64(stats.Wins)
+
+			stats.WinPercentage = math.Round(100*(wins/totalGamesPlayed)*100.0) / 100
+
+			statsSlice = append(statsSlice, stats)
+		}
+
+		sort.Sort(userStatsByWinPercDesc(statsSlice))
+
+		group.UserStatistics = statsSlice
+		gameGroupSlice[groupIndex] = group.gameGroup
+		groupIndex++
+
 	}
 
-	return selectGames, statsSlice
+	sort.Sort(gameGroupsByYearMonthDesc(gameGroupSlice))
+
+	return gameGroupSlice
+}
+
+// getGameImage takes a game and returns the Image with a base64
+// encoding of the svg file
+func getGameImage(g chessGame) (string, error) {
+
+	// Mark will be used to represent the last move made.
+	// By default, there will be no markings.
+	yellow := color.RGBA{255, 255, 0, 1}
+	mark := image.MarkSquares(yellow)
+
+	// If at least one move has been made, mark the last move
+	moves := g.ChessGame.Moves()
+	if len(moves) > 0 {
+		lastMove := moves[len(moves)-1]
+		mark = image.MarkSquares(yellow, lastMove.S1(), lastMove.S2())
+	}
+
+	// Initialize buffer to write the SVG image of the chess board
+	svgBuffer := bytes.Buffer{}
+
+	// Write board SVG to buffer
+	board := g.ChessGame.Position().Board()
+	if err := image.SVG(&svgBuffer, board, mark); err != nil {
+		return "", fmt.Errorf("could not get svg file: %w", err)
+	}
+
+	// Base64 encode the SVG image to be able to embed in HTML file
+	svgBytes := svgBuffer.Bytes()
+	svgBase64 := base64.StdEncoding.EncodeToString(svgBytes)
+
+	return svgBase64, nil
 }

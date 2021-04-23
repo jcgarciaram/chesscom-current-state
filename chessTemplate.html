@@ -37,14 +37,37 @@
 
     <div class="w3-main w3-content w3-padding" style="max-width:1200px;margin-top:100px">
         <h2>Current Games</h2>
-        {{range .CurrGameSlices}}
+        {{range .CurrGameGroups}}
         <div class="w3-row-padding w3-padding-16 w3-center" id="games">
-            {{range .Games}}
+            {{ $length := len .ChessGames }}
+            {{ $chessGames := .ChessGames}}
+            {{ range $i := getIndexes 3 $length }}
+            {{ if lt $i $length }}
             <div class="w3-third">
-                <h3>{{.Black}}</h3>
-                <img src="data:image/svg+xml;base64,{{.Image}}"></p>
-                <h3>{{.White}}</h3>
+                {{ $game := index $chessGames $i }}
+                <h3>{{ $game.PgnParsed.Black }}</h3>
+                <img src="data:image/svg+xml;base64,{{$game.Image}}"></p>
+                <h3>{{ $game.PgnParsed.White }}</h3>
             </div>
+            {{end}}
+            {{ $iPlus1 := add $i 1 }}
+            {{if lt $iPlus1 $length}}
+            <div class="w3-third">
+                {{ $game := index $chessGames $iPlus1}}
+                <h3>{{$game.PgnParsed.Black}}{{if $game.PgnParsed.BlackWon}} &#128081;{{end}}</h3>
+                <img src="data:image/svg+xml;base64,{{$game.Image}}"></p>
+                <h3>{{$game.PgnParsed.White}}{{if $game.PgnParsed.WhiteWon}} &#128081;{{end}}</h3>
+            </div>
+            {{end}}
+            {{ $iPlus2 := add $i 2 }}
+            {{if lt $iPlus2 $length}}
+            <div class="w3-third">
+                {{ $game := index $chessGames $iPlus2}}
+                <h3>{{$game.PgnParsed.Black}}{{if $game.PgnParsed.BlackWon}} &#128081;{{end}}</h3>
+                <img src="data:image/svg+xml;base64,{{$game.Image}}"></p>
+                <h3>{{$game.PgnParsed.White}}{{if $game.PgnParsed.WhiteWon}} &#128081;{{end}}</h3>
+            </div>
+            {{end}}
             {{end}}
         </div>
         {{end}}
@@ -54,6 +77,8 @@
 
     <div class="w3-main w3-content w3-padding" style="max-width:1200px;margin-top:100px">
         <h2>Finished Games</h2>
+        {{range .FinishedGameGroups}}
+        <h1>{{monthString .Month}} {{.Year}}</h1>
         <div>
             <table class="w3-table">
                 <tr>
@@ -61,29 +86,51 @@
                     <th>Wins</th>
                     <th>Losses</th>
                     <th>Draws</th>
-                    <th>Points</th>
+                    <th>Win %</th>
                     <th>Win Streak</th>
                 </tr>
-                {{range .Stats}}
+                {{range .UserStatistics}}
                 <tr>
                     <td>{{.User}}</td>
                     <td>{{.Wins}}</td>
                     <td>{{.Losses}}</td>
                     <td>{{.Draws}}</td>
-                    <td>{{.Points}}</td>
+                    <td>{{.WinPercentage}} %</td>
                     <td>{{.WinStreak}}</td>
                 </tr>
                 {{end}}
             </table>
         </div>
-        {{range .FinishedGameSlices}}
         <div class="w3-row-padding w3-padding-16 w3-center" id="games">
-            {{range .Games}}
+            {{ $length := len .ChessGames}}
+            {{ $chessGames := .ChessGames}}
+            {{range $i := getIndexes 3 $length }}
+            {{if lt $i $length}}
             <div class="w3-third">
-                <h3>{{.Black}}</h3>
-                <img src="data:image/svg+xml;base64,{{.Image}}"></p>
-                <h3>{{.White}}</h3>
+                {{ $game := index $chessGames $i}}
+                <h3>{{$game.PgnParsed.Black}}{{if $game.PgnParsed.BlackWon}} &#128081;{{end}}</h3>
+                <img src="data:image/svg+xml;base64,{{$game.Image}}"></p>
+                <h3>{{$game.PgnParsed.White}}{{if $game.PgnParsed.WhiteWon}} &#128081;{{end}}</h3>
             </div>
+            {{end}}
+            {{ $iPlus1 := add $i 1 }}
+            {{if lt $iPlus1 $length}}
+            <div class="w3-third">
+                {{ $game := index $chessGames $iPlus1}}
+                <h3>{{$game.PgnParsed.Black}}{{if $game.PgnParsed.BlackWon}} &#128081;{{end}}</h3>
+                <img src="data:image/svg+xml;base64,{{$game.Image}}"></p>
+                <h3>{{$game.PgnParsed.White}}{{if $game.PgnParsed.WhiteWon}} &#128081;{{end}}</h3>
+            </div>
+            {{end}}
+            {{ $iPlus2 := add $i 2 }}
+            {{if lt $iPlus2 $length}}
+            <div class="w3-third">
+                {{ $game := index $chessGames $iPlus2}}
+                <h3>{{$game.PgnParsed.Black}}{{if $game.PgnParsed.BlackWon}} &#128081;{{end}}</h3>
+                <img src="data:image/svg+xml;base64,{{$game.Image}}"></p>
+                <h3>{{$game.PgnParsed.White}}{{if $game.PgnParsed.WhiteWon}} &#128081;{{end}}</h3>
+            </div>
+            {{end}}
             {{end}}
         </div>
         {{end}}

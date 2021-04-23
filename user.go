@@ -1,16 +1,17 @@
 package main
 
 type userStats struct {
-	User      string
-	Wins      int
-	Losses    int
-	Draws     int
-	Points    float64
-	WinStreak int
+	User          string
+	Wins          int
+	Losses        int
+	Draws         int
+	Points        float64
+	WinPercentage float64
+	WinStreak     int
 }
 
-type userStatsByPointsDesc []userStats
+type userStatsByWinPercDesc []userStats
 
-func (a userStatsByPointsDesc) Len() int           { return len(a) }
-func (a userStatsByPointsDesc) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a userStatsByPointsDesc) Less(i, j int) bool { return a[i].Points > a[j].Points }
+func (a userStatsByWinPercDesc) Len() int           { return len(a) }
+func (a userStatsByWinPercDesc) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a userStatsByWinPercDesc) Less(i, j int) bool { return a[i].WinPercentage > a[j].WinPercentage }
