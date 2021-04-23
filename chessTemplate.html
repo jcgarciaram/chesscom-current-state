@@ -125,12 +125,12 @@
                 <p>{{$game.ChessComFinishedGame.Black.Result}}</p>
                 <img src="data:image/svg+xml;base64,{{$game.Image}}"></p>
                 <p>{{$game.ChessComFinishedGame.White.Result}}</p>
-                <h3>{{$game.PgnParsed.White}}
-                    {{if $game.PgnParsed.WhiteWon}} &#128081;{{end}}
-                    {{if $game.PgnParsed.WhiteResigned}} &#127987;&#65039;{{end}}
-                    {{if $game.PgnParsed.WhiteWasCheckmated}} &#129301;{{end}}
-                    {{if $game.PgnParsed.WhiteTimedOut}} &#9201;&#65039;{{end}}
-                    {{if $game.PgnParsed.Draw}} &#129309;{{end}}
+                <h3>{{if $game.PgnParsed.WhiteWon}}&#128081; {{end}}
+                    {{if $game.PgnParsed.WhiteResigned}}&#127987;&#65039; {{end}}
+                    {{if $game.PgnParsed.WhiteWasCheckmated}}&#129301; {{end}}
+                    {{if $game.PgnParsed.WhiteTimedOut}}&#9201;&#65039; {{end}}
+                    {{if $game.PgnParsed.Draw}}&#129309; {{end}}
+                    {{$game.PgnParsed.White}}
                 </h3>
             </div>
             {{end}}
@@ -148,12 +148,12 @@
                 <p>{{$game.ChessComFinishedGame.Black.Result}}</p>
                 <img src="data:image/svg+xml;base64,{{$game.Image}}"></p>
                 <p>{{$game.ChessComFinishedGame.White.Result}}</p>
-                <h3>{{$game.PgnParsed.White}}
-                    {{if $game.PgnParsed.WhiteWon}} &#128081;{{end}}
-                    {{if $game.PgnParsed.WhiteResigned}} &#127987;&#65039;{{end}}
-                    {{if $game.PgnParsed.WhiteWasCheckmated}} &#129301;{{end}}
-                    {{if $game.PgnParsed.WhiteTimedOut}} &#9201;&#65039;{{end}}
-                    {{if $game.PgnParsed.Draw}} &#129309;{{end}}
+                <h3>{{if $game.PgnParsed.WhiteWon}}&#128081; {{end}}
+                    {{if $game.PgnParsed.WhiteResigned}}&#127987;&#65039; {{end}}
+                    {{if $game.PgnParsed.WhiteWasCheckmated}}&#129301; {{end}}
+                    {{if $game.PgnParsed.WhiteTimedOut}}&#9201;&#65039; {{end}}
+                    {{if $game.PgnParsed.Draw}}&#129309; {{end}}
+                    {{$game.PgnParsed.White}}
                 </h3>
             </div>
             {{end}}
@@ -171,12 +171,12 @@
                 <p>{{$game.ChessComFinishedGame.Black.Result}}</p>
                 <img src="data:image/svg+xml;base64,{{$game.Image}}"></p>
                 <p>{{$game.ChessComFinishedGame.White.Result}}</p>
-                <h3>{{$game.PgnParsed.White}}
-                    {{if $game.PgnParsed.WhiteWon}} &#128081;{{end}}
-                    {{if $game.PgnParsed.WhiteResigned}} &#127987;&#65039;{{end}}
-                    {{if $game.PgnParsed.WhiteWasCheckmated}} &#129301;{{end}}
-                    {{if $game.PgnParsed.WhiteTimedOut}} &#9201;&#65039;{{end}}
-                    {{if $game.PgnParsed.Draw}} &#129309;{{end}}
+                <h3>{{if $game.PgnParsed.WhiteWon}}&#128081; {{end}}
+                    {{if $game.PgnParsed.WhiteResigned}}&#127987;&#65039; {{end}}
+                    {{if $game.PgnParsed.WhiteWasCheckmated}}&#129301; {{end}}
+                    {{if $game.PgnParsed.WhiteTimedOut}}&#9201;&#65039; {{end}}
+                    {{if $game.PgnParsed.Draw}}&#129309; {{end}}
+                    {{$game.PgnParsed.White}}
                 </h3>
             </div>
             {{end}}
