@@ -36,16 +36,16 @@ jobs:
 
       # restart service
       - name: remove chesscom-curr-state binary leftover from previous run in chesscom-curr-state EC2 instance
-        run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem ubuntu@18.188.47.145 'rm chesscom-curr-state || true'
+        run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem ubuntu@18.191.86.176 'rm chesscom-curr-state || true'
 
       - name: upload chesscom-curr-state binary
-        run: sftp -oStrictHostKeyChecking=no -i ./rsa.pem ubuntu@18.188.47.145 <<< $'put ./cmd/chesscom-curr-state'
+        run: sftp -oStrictHostKeyChecking=no -i ./rsa.pem ubuntu@18.191.86.176 <<< $'put ./cmd/chesscom-curr-state'
 
       - name: upload chesscom-curr-state chessTemplate.html
-        run: sftp -oStrictHostKeyChecking=no -i ./rsa.pem ubuntu@18.188.47.145 <<< $'put ./chessTemplate.html'
+        run: sftp -oStrictHostKeyChecking=no -i ./rsa.pem ubuntu@18.191.86.176 <<< $'put ./chessTemplate.html'
 
       - name: upload chesscom-curr-state favicon.ico
-        run: sftp -oStrictHostKeyChecking=no -i ./rsa.pem ubuntu@18.188.47.145 <<< $'put ./favicon.ico'
+        run: sftp -oStrictHostKeyChecking=no -i ./rsa.pem ubuntu@18.191.86.176 <<< $'put ./favicon.ico'
 
       - name: restart chesscom-curr-state service
-        run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem ubuntu@18.188.47.145 'sudo service chesscom-curr-state restart'
+        run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem ubuntu@18.191.86.176 'sudo service chesscom-curr-state restart'

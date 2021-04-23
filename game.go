@@ -139,6 +139,8 @@ func getUserUnfinishedGames(username string) ([]chessGame, error) {
 		return []chessGame{}, fmt.Errorf("could not get games for username %s: %w", username, err)
 	}
 
+	defer resp.Body.Close()
+
 	// get the response body
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -179,6 +181,8 @@ func getUserFinishedGames(username string) ([]chessGame, error) {
 		return []chessGame{}, fmt.Errorf("could not get games for username %s: %w", username, err)
 	}
 
+	defer resp.Body.Close()
+
 	// get the response body
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -208,6 +212,8 @@ func getUserFinishedGames(username string) ([]chessGame, error) {
 				log.Printf("could not get games for username %s: %s", username, err)
 				return
 			}
+
+			defer resp.Body.Close()
 
 			// get the response body
 			respBody, err := ioutil.ReadAll(resp.Body)
