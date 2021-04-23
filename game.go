@@ -308,11 +308,9 @@ func getChessGame(pgnString string) (chessGame, error) {
 		}
 		if key == "EndDate" {
 			parsedPgn.EndDate = val
-			fmt.Println(parsedPgn.EndDate)
 		}
 		if key == "EndTime" {
 			parsedPgn.EndTime = val
-			fmt.Println(parsedPgn.EndTime)
 		}
 		if key == "Link" {
 			parsedPgn.Link = val
