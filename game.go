@@ -89,10 +89,11 @@ func (a chessGamesByEndTimeDesc) Less(i, j int) bool {
 }
 
 type chessGame struct {
-	ChessGame *chess.Game `json:"-"`
-	PgnParsed pgnParsed   `json:"-"`
-	URL       string      `json:"-"`
-	Image     string      `json:"-"`
+	ChessComFinishedGame *chessComFinishedGame
+	ChessGame            *chess.Game `json:"-"`
+	PgnParsed            pgnParsed   `json:"-"`
+	URL                  string      `json:"-"`
+	Image                string      `json:"-"`
 }
 
 type pgnParsed struct {
@@ -231,6 +232,7 @@ func getUserFinishedGames(username string) ([]chessGame, error) {
 					return
 				}
 
+				pgnChessGame.ChessComFinishedGame = &gamesForUser.Games[i]
 				pgnChessGame.URL = gamesForUser.Games[i].URL
 
 				mutex.Lock()
