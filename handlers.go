@@ -5,6 +5,10 @@ import (
 	"net/http"
 )
 
+func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
 func getHomepage(w http.ResponseWriter, r *http.Request) {
 
 	users := []string{

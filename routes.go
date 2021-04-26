@@ -11,6 +11,13 @@ type route struct {
 
 var routes = []route{
 	{
+		name:        "healthCheckHandler",
+		method:      "GET",
+		pattern:     "/health",
+		handlerFunc: healthCheckHandler,
+	},
+
+	{
 		name:        "getHomepage",
 		method:      "GET",
 		pattern:     "/",
