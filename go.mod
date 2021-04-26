@@ -2,4 +2,9 @@ module github.com/jcgarciaram/chess-curr-state
 
 go 1.14
 
-require github.com/notnil/chess v1.5.0
+require (
+	github.com/google/uuid v1.2.0
+	github.com/gorilla/mux v1.8.0
+	github.com/notnil/chess v1.5.0
+	github.com/sirupsen/logrus v1.8.1
+)
