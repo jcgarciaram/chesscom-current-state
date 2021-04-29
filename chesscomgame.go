@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -153,77 +152,19 @@ func getUserFinishedGames(username string) ([]chessGame, error) {
 		go func(url string) {
 			defer wg.Done()
 
-			c2 := &http.Client{
-				Timeout: time.Second * 5,
-			}
+			attempts := 5
+			for i := 0; i < attempts; i++ {
 
-			resp, err := c2.Get(url)
-			if err != nil {
-				log.Printf("could not get finished games. url (%s) for username %s: %s", url, username, err)
-				return
-			}
-
-			defer resp.Body.Close()
-
-			// get the response body
-			respBody, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				log.Printf("could not read response body for finished games. url (%s) for username %s: %s", url, username, err)
-				return
-			}
-
-			gamesForUser := chessComFinishedUserGames{}
-			// Unmarshal response body to struct above
-			err = json.Unmarshal(respBody, &gamesForUser)
-			if err != nil {
-				logrus.WithError(err).WithFields(logrus.Fields{
-					"url":      url,
-					"username": username,
-					"respBody": string(respBody),
-				}).Info("could not unmarshal response body for finished games")
-				return
-			}
-
-			// Loop through all games and build a ChessGame from PGN.
-			for i := 0; i < len(gamesForUser.Games); i++ {
-				pgnChessGame, err := getChessGame(gamesForUser.Games[i].Pgn)
+				pgnChessGames, err := getFinishedGamesWithURL(username, url)
 				if err != nil {
-					log.Printf("could not read Pgn for game for username %s: %s", username, err)
-					return
+					logrus.WithError(err).WithField("attempt loop", i).Warn("could not get finished games with url")
+					continue
 				}
-
-				// Set boolean fields for HTML rendering for black
-				if gamesForUser.Games[i].Black.Result == ChessComResultWin {
-					pgnChessGame.PgnParsed.BlackWon = true
-				} else if gamesForUser.Games[i].Black.Result == ChessComResultCheckmated {
-					pgnChessGame.PgnParsed.BlackWasCheckmated = true
-				} else if gamesForUser.Games[i].Black.Result == ChessComResultResigned {
-					pgnChessGame.PgnParsed.BlackResigned = true
-				} else if gamesForUser.Games[i].Black.Result == ChessComResultTimeout {
-					pgnChessGame.PgnParsed.BlackTimedOut = true
-				}
-
-				// Set boolean fields for HTML rendering for white
-				if gamesForUser.Games[i].White.Result == ChessComResultWin {
-					pgnChessGame.PgnParsed.WhiteWon = true
-				} else if gamesForUser.Games[i].White.Result == ChessComResultCheckmated {
-					pgnChessGame.PgnParsed.WhiteWasCheckmated = true
-				} else if gamesForUser.Games[i].White.Result == ChessComResultResigned {
-					pgnChessGame.PgnParsed.WhiteResigned = true
-				} else if gamesForUser.Games[i].White.Result == ChessComResultTimeout {
-					pgnChessGame.PgnParsed.WhiteTimedOut = true
-				}
-
-				if pgnChessGame.PgnParsed.Result == PgnResultDraw {
-					pgnChessGame.PgnParsed.Draw = true
-				}
-
-				pgnChessGame.ChessComFinishedGame = &gamesForUser.Games[i]
-				pgnChessGame.URL = gamesForUser.Games[i].URL
 
 				mutex.Lock()
-				chessGames = append(chessGames, pgnChessGame)
+				chessGames = append(chessGames, pgnChessGames...)
 				mutex.Unlock()
+
 			}
 		}(archiveURL)
 	}
@@ -231,4 +172,72 @@ func getUserFinishedGames(username string) ([]chessGame, error) {
 	wg.Wait()
 
 	return chessGames, nil
+}
+
+func getFinishedGamesWithURL(username, url string) ([]chessGame, error) {
+	c2 := &http.Client{
+		Timeout: time.Second * 5,
+	}
+
+	resp, err := c2.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("could not get finished games. url (%s) for username %s: %s", url, username, err)
+	}
+
+	defer resp.Body.Close()
+
+	// get the response body
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("could not read response body for finished games. url (%s) for username %s: %s", url, username, err)
+	}
+
+	gamesForUser := chessComFinishedUserGames{}
+	// Unmarshal response body to struct above
+	err = json.Unmarshal(respBody, &gamesForUser)
+	if err != nil {
+		return nil, fmt.Errorf("could not unmarshal response body for finished games. url (%s) for username %s: %s", url, username, err)
+	}
+
+	pngChessGames := make([]chessGame, len(gamesForUser.Games))
+	// Loop through all games and build a ChessGame from PGN.
+	for i := 0; i < len(gamesForUser.Games); i++ {
+		pgnChessGame, err := getChessGame(gamesForUser.Games[i].Pgn)
+		if err != nil {
+			return nil, fmt.Errorf("could not read Pgn for game for username %s: %s", username, err)
+		}
+
+		// Set boolean fields for HTML rendering for black
+		if gamesForUser.Games[i].Black.Result == ChessComResultWin {
+			pgnChessGame.PgnParsed.BlackWon = true
+		} else if gamesForUser.Games[i].Black.Result == ChessComResultCheckmated {
+			pgnChessGame.PgnParsed.BlackWasCheckmated = true
+		} else if gamesForUser.Games[i].Black.Result == ChessComResultResigned {
+			pgnChessGame.PgnParsed.BlackResigned = true
+		} else if gamesForUser.Games[i].Black.Result == ChessComResultTimeout {
+			pgnChessGame.PgnParsed.BlackTimedOut = true
+		}
+
+		// Set boolean fields for HTML rendering for white
+		if gamesForUser.Games[i].White.Result == ChessComResultWin {
+			pgnChessGame.PgnParsed.WhiteWon = true
+		} else if gamesForUser.Games[i].White.Result == ChessComResultCheckmated {
+			pgnChessGame.PgnParsed.WhiteWasCheckmated = true
+		} else if gamesForUser.Games[i].White.Result == ChessComResultResigned {
+			pgnChessGame.PgnParsed.WhiteResigned = true
+		} else if gamesForUser.Games[i].White.Result == ChessComResultTimeout {
+			pgnChessGame.PgnParsed.WhiteTimedOut = true
+		}
+
+		if pgnChessGame.PgnParsed.Result == PgnResultDraw {
+			pgnChessGame.PgnParsed.Draw = true
+		}
+
+		pgnChessGame.ChessComFinishedGame = &gamesForUser.Games[i]
+		pgnChessGame.URL = gamesForUser.Games[i].URL
+
+		pngChessGames[i] = pgnChessGame
+	}
+
+	return pngChessGames, nil
 }
