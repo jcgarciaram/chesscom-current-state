@@ -165,6 +165,7 @@ func getUserFinishedGames(username string) ([]chessGame, error) {
 				chessGames = append(chessGames, pgnChessGames...)
 				mutex.Unlock()
 
+				break
 			}
 		}(archiveURL)
 	}
