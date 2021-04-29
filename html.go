@@ -2,18 +2,18 @@ package main
 
 import (
 	"bytes"
+	_ "embed"
 	"fmt"
 	"html/template"
-	"os"
-	"path"
 	"time"
 )
 
 var (
-	// chessTemplate = "chessTemplate.html"
-	// faviconFile   = "favicon.ico"
-	chessTemplate = os.Getenv("HOME") + "/chessTemplate.html"
-	faviconFile   = os.Getenv("HOME") + "/favicon.ico"
+	//go:embed website/index.html
+	indexHTMLTemplate string
+
+	//go:embed website/images/favicon.ico
+	faviconFile []byte
 )
 
 // The following structs are a bit funky, but they were built this way
@@ -44,8 +44,7 @@ func getIndexHTML(currentGameGroups []gameGroup, finishedGameGroups []gameGroup)
 	}
 
 	// Parse the HTML template file
-	name := path.Base(chessTemplate)
-	tmplt, err := template.New(name).Funcs(funcs).ParseFiles(chessTemplate)
+	tmplt, err := template.New("index").Funcs(funcs).Parse(indexHTMLTemplate)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse file template: %w", err)
 	}

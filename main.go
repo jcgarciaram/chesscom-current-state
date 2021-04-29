@@ -26,8 +26,9 @@ func main() {
 			Handler(handler)
 	}
 
+	port := ":8889"
 	server := &http.Server{
-		Addr: ":8889",
+		Addr: port,
 		// Good practice to set timeouts to avoid Slowloris attacks.
 		// WriteTimeout: time.Second * 15,
 		// ReadTimeout:  time.Second * 15,
@@ -38,6 +39,7 @@ func main() {
 	}
 
 	go func() {
+		logrus.Infof("server started on port %s", port)
 		logrus.WithError(server.ListenAndServe()).Fatal("failed to start server")
 	}()
 

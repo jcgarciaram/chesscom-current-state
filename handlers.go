@@ -33,5 +33,5 @@ func getHomepage(w http.ResponseWriter, r *http.Request) {
 }
 
 func getFaviconHandler(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, faviconFile)
+	w.Write(faviconFile)
 }

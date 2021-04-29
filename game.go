@@ -103,65 +103,45 @@ func getChessGame(pgnString string) (chessGame, error) {
 
 		if key == "Event" {
 			parsedPgn.Event = val
-		}
-		if key == "Site" {
+		} else if key == "Site" {
 			parsedPgn.Site = val
-		}
-		if key == "Date" {
+		} else if key == "Date" {
 			parsedPgn.Date = val
-		}
-		if key == "Round" {
+		} else if key == "Round" {
 			parsedPgn.Round = val
-		}
-		if key == "White" {
+		} else if key == "White" {
 			parsedPgn.White = val
-		}
-		if key == "Black" {
+		} else if key == "Black" {
 			parsedPgn.Black = val
-		}
-		if key == "Result" {
+		} else if key == "Result" {
 			parsedPgn.Result = val
-		}
-		if key == "CurrentPosition" {
+		} else if key == "CurrentPosition" {
 			parsedPgn.CurrentPosition = val
-		}
-		if key == "Timezone" {
+		} else if key == "Timezone" {
 			parsedPgn.Timezone = val
-		}
-		if key == "ECO" {
+		} else if key == "ECO" {
 			parsedPgn.ECO = val
-		}
-		if key == "ECOUrl" {
+		} else if key == "ECOUrl" {
 			parsedPgn.ECOUrl = val
-		}
-		if key == "UTCDate" {
+		} else if key == "UTCDate" {
 			parsedPgn.UTCDate = val
-		}
-		if key == "UTCTime" {
+		} else if key == "UTCTime" {
 			parsedPgn.UTCTime = val
-		}
-		if key == "WhiteElo" {
+		} else if key == "WhiteElo" {
 			parsedPgn.WhiteElo = val
-		}
-		if key == "BlackElo" {
+		} else if key == "BlackElo" {
 			parsedPgn.BlackElo = val
-		}
-		if key == "TimeControl" {
+		} else if key == "TimeControl" {
 			parsedPgn.TimeControl = val
-		}
-		if key == "Termination" {
+		} else if key == "Termination" {
 			parsedPgn.Termination = val
-		}
-		if key == "StartTime" {
+		} else if key == "StartTime" {
 			parsedPgn.StartTime = val
-		}
-		if key == "EndDate" {
+		} else if key == "EndDate" {
 			parsedPgn.EndDate = val
-		}
-		if key == "EndTime" {
+		} else if key == "EndTime" {
 			parsedPgn.EndTime = val
-		}
-		if key == "Link" {
+		} else if key == "Link" {
 			parsedPgn.Link = val
 		}
 	}
