@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>AJC Chess Club</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Karma">
+    <style>
+        p,
+        table,
+        tr,
+        th,
+        td,
+        body,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: "Karma", sans-serif
+        }
+
+        .w3-bar-block .w3-bar-item {
+            padding: 20px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="w3-top">
+        <div class="w3-white w3-xlarge" style="max-width:1200px;margin:auto">
+            <div class="w3-center w3-padding-16">
+                <h1>AJC Chess Club</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="w3-main w3-content w3-padding" style="max-width:1200px;margin-top:100px">
+        <h1>Current Games</h1>
+        {{range .CurrGameGroups}}
+        <div class="w3-row-padding w3-padding-16 w3-center" id="games">
+            {{range .ChessGames}}
+            <div class="w3-third">
+                <h3>{{ .PgnParsed.Black }}</h3>
+                <img src="data:image/svg+xml;base64,{{.Image}}"></p>
+                <h3>{{ .PgnParsed.White }}</h3>
+                <hr>
+            </div>
+            {{end}}
+        </div>
+        {{end}}
+    </div>
+
+
+
+    <div class="w3-main w3-content w3-padding" style="max-width:1200px;margin-top:100px">
+        <h1>Finished Games</h1>
+        {{range .FinishedGameGroups}}
+        <h2>{{monthString .Month}} {{.Year}}</h2>
+        <div>
+            <table class="w3-table">
+                <tr>
+                    <th>Player</th>
+                    <th>Wins</th>
+                    <th>Losses</th>
+                    <th>Draws</th>
+                    <th>Win %</th>
+                    <th>Win Streak</th>
+                </tr>
+                {{range .UserStatistics}}
+                <tr>
+                    <td>{{.User}}</td>
+                    <td>{{.Wins}}</td>
+                    <td>{{.Losses}}</td>
+                    <td>{{.Draws}}</td>
+                    <td>{{.WinPercentage}} %</td>
+                    <td>{{.WinStreak}}</td>
+                </tr>
+                {{end}}
+            </table>
+        </div>
+        <div class="w3-row-padding w3-padding-16 w3-center" id="games">
+            {{range .ChessGames}}
+            <div class="w3-third">
+                <h3>{{.PgnParsed.Black}}
+                    {{if .PgnParsed.BlackWon}} &#128081;{{end}}
+                    {{if .PgnParsed.BlackResigned}} &#127987;&#65039;{{end}}
+                    {{if .PgnParsed.BlackWasCheckmated}} &#129301;{{end}}
+                    {{if .PgnParsed.BlackTimedOut}} &#9201;&#65039;{{end}}
+                    {{if .PgnParsed.Draw}} &#129309;{{end}}
+                </h3>
+                <p>{{.ChessComFinishedGame.Black.Result}}</p>
+                <img src="data:image/svg+xml;base64,{{.Image}}"></p>
+                <p>{{.ChessComFinishedGame.White.Result}}</p>
+                <h3>{{if .PgnParsed.WhiteWon}}&#128081; {{end}}
+                    {{if .PgnParsed.WhiteResigned}}&#127987;&#65039; {{end}}
+                    {{if .PgnParsed.WhiteWasCheckmated}}&#129301; {{end}}
+                    {{if .PgnParsed.WhiteTimedOut}}&#9201;&#65039; {{end}}
+                    {{if .PgnParsed.Draw}}&#129309; {{end}}
+                    {{.PgnParsed.White}}
+                </h3>
+                <hr style="width: 100%">
+            </div>
+            {{end}}
+        </div>
+        {{end}}
+    </div>
+
+
+</body>
+
+</html>
