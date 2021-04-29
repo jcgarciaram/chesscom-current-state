@@ -23,10 +23,12 @@ const (
 	PgnResultDraw       = "1/2-1/2"
 	PgnResultInProgress = "*"
 
-	ChessComResultWin        = "win"
-	ChessComResultCheckmated = "checkmated"
-	ChessComResultResigned   = "resigned"
-	ChessComResultTimeout    = "timeout"
+	ChessComResultWin          = "win"
+	ChessComResultCheckmated   = "checkmated"
+	ChessComResultResigned     = "resigned"
+	ChessComResultTimeout      = "timeout"
+	ChessComResultAgreed       = "agreed"
+	ChessComResultInsufficient = "insufficient"
 )
 
 type chessGamesByEndTimeDesc []chessGame
@@ -78,6 +80,10 @@ type pgnParsed struct {
 	BlackResigned      bool
 	WhiteTimedOut      bool
 	BlackTimedOut      bool
+	WhiteAgreed        bool
+	BlackAgreed        bool
+	WhiteInsufficient  bool
+	BlackInsufficient  bool
 	Draw               bool
 }
 

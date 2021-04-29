@@ -40,6 +40,11 @@
 
     <div class="w3-main w3-content w3-padding" style="max-width:1200px;margin-top:100px">
         <h1>Current Games</h1>
+        {{ $gameGroupsLength := len .CurrGameGroups}}
+        {{if eq $gameGroupsLength 0}}
+        <h2>There are no current games.</h2>
+        <h3>Go ahead, challenge someone!</h3>
+        {{end}}
         {{range .CurrGameGroups}}
         <div class="w3-row-padding w3-padding-16 w3-center" id="games">
             {{range .ChessGames}}
@@ -90,7 +95,8 @@
                     {{if .PgnParsed.BlackResigned}} &#127987;&#65039;{{end}}
                     {{if .PgnParsed.BlackWasCheckmated}} &#129301;{{end}}
                     {{if .PgnParsed.BlackTimedOut}} &#9201;&#65039;{{end}}
-                    {{if .PgnParsed.Draw}} &#129309;{{end}}
+                    {{if .PgnParsed.BlackAgreed}} &#129309;{{end}}
+                    {{if .PgnParsed.BlackInsufficient}} &#129335;{{end}}
                 </h3>
                 <p>{{.ChessComFinishedGame.Black.Result}}</p>
                 <img src="data:image/svg+xml;base64,{{.Image}}"></p>
@@ -99,7 +105,8 @@
                     {{if .PgnParsed.WhiteResigned}}&#127987;&#65039; {{end}}
                     {{if .PgnParsed.WhiteWasCheckmated}}&#129301; {{end}}
                     {{if .PgnParsed.WhiteTimedOut}}&#9201;&#65039; {{end}}
-                    {{if .PgnParsed.Draw}}&#129309; {{end}}
+                    {{if .PgnParsed.WhiteAgreed}}&#129309; {{end}}
+                    {{if .PgnParsed.WhiteInsufficient}} &#129335;&#127997;&#8205;&#9794;&#65039;{{end}}
                     {{.PgnParsed.White}}
                 </h3>
                 <hr style="width: 100%">

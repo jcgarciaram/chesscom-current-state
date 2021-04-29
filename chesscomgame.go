@@ -217,6 +217,10 @@ func getFinishedGamesWithURL(username, url string) ([]chessGame, error) {
 			pgnChessGame.PgnParsed.BlackResigned = true
 		} else if gamesForUser.Games[i].Black.Result == ChessComResultTimeout {
 			pgnChessGame.PgnParsed.BlackTimedOut = true
+		} else if gamesForUser.Games[i].Black.Result == ChessComResultAgreed {
+			pgnChessGame.PgnParsed.BlackAgreed = true
+		} else if gamesForUser.Games[i].Black.Result == ChessComResultInsufficient {
+			pgnChessGame.PgnParsed.BlackInsufficient = true
 		}
 
 		// Set boolean fields for HTML rendering for white
@@ -228,6 +232,10 @@ func getFinishedGamesWithURL(username, url string) ([]chessGame, error) {
 			pgnChessGame.PgnParsed.WhiteResigned = true
 		} else if gamesForUser.Games[i].White.Result == ChessComResultTimeout {
 			pgnChessGame.PgnParsed.WhiteTimedOut = true
+		} else if gamesForUser.Games[i].White.Result == ChessComResultAgreed {
+			pgnChessGame.PgnParsed.WhiteAgreed = true
+		} else if gamesForUser.Games[i].White.Result == ChessComResultInsufficient {
+			pgnChessGame.PgnParsed.WhiteInsufficient = true
 		}
 
 		if pgnChessGame.PgnParsed.Result == PgnResultDraw {
