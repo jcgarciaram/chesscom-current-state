@@ -28,36 +28,67 @@
         }
 
         .loader {
-            border: 16px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 16px solid #3498db;
-            width: 10px;
-            height: 10px;
-            -webkit-animation: spin 1s linear infinite;
-            /* Safari */
-            animation: spin 1s linear infinite;
-            position: fixed;
+            display: inline-block;
+            position: relative;
+            width: 80px;
+            height: 80px;
+            opacity: 0;
             left: 50%;
         }
 
+
+        .loader.show {
+            opacity: 1;
+        }
+
+        .loader div {
+            display: inline-block;
+            position: absolute;
+            left: 8px;
+            width: 16px;
+            background: #202020;
+            animation: loader 1.2s cubic-bezier(0, 0.5, 0.5, 1) infinite;
+        }
+
+        .loader div:nth-child(1) {
+            left: 8px;
+            animation-delay: -0.24s;
+        }
+
+        .loader div:nth-child(2) {
+            left: 32px;
+            animation-delay: -0.12s;
+        }
+
+        .loader div:nth-child(3) {
+            left: 56px;
+            animation-delay: 0;
+        }
+
         /* Safari */
-        @-webkit-keyframes spin {
+        @-webkit-keyframes loader {
             0% {
-                -webkit-transform: rotate(0deg);
+                top: 8px;
+                height: 64px;
             }
 
+            50%,
             100% {
-                -webkit-transform: rotate(360deg);
+                top: 24px;
+                height: 32px;
             }
         }
 
-        @keyframes spin {
+        @keyframes loader {
             0% {
-                transform: rotate(0deg);
+                top: 8px;
+                height: 64px;
             }
 
+            50%,
             100% {
-                transform: rotate(360deg);
+                top: 24px;
+                height: 32px;
             }
         }
     </style>
