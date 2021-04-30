@@ -12,6 +12,9 @@ var (
 	//go:embed website/index.html
 	indexHTMLTemplate string
 
+	//go:embed website/gamesForMonth.html
+	gamesForMonthHTMLTemplate string
+
 	//go:embed website/images/favicon.ico
 	faviconFile []byte
 )
@@ -25,9 +28,9 @@ type htmlData struct {
 	FinishedGameGroups []gameGroup
 }
 
-// getIndexHTML takes a slice of games and returns an HTML
-// webpage using chessTemplate.html as a template file.
-func getIndexHTML(currentGameGroups []gameGroup, finishedGameGroups []gameGroup) ([]byte, error) {
+// getIndexHTMLBytes takes a slice of games and returns an HTML
+// webpage using index.html as a template file.
+func getIndexHTMLBytes(currentGameGroups []gameGroup, finishedGameGroups []gameGroup) ([]byte, error) {
 
 	// Initialize the gameSlices object which will be passed
 	// into the html template file
@@ -45,6 +48,40 @@ func getIndexHTML(currentGameGroups []gameGroup, finishedGameGroups []gameGroup)
 
 	// Parse the HTML template file
 	tmplt, err := template.New("index").Funcs(funcs).Parse(indexHTMLTemplate)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse file template: %w", err)
+	}
+
+	// Pass in the data
+	outputParsed := bytes.Buffer{}
+	err = tmplt.Execute(&outputParsed, data)
+	if err != nil {
+		return nil, fmt.Errorf("could not execute file template: %w", err)
+	}
+
+	// Return the bytes of the webpage
+	return outputParsed.Bytes(), nil
+}
+
+// getGamesForMonthHTMLBytes takes a slice of games and returns an HTML
+// webpage using gamesForMonth.html as a template file.
+func getGamesForMonthHTMLBytes(finishedGameGroups []gameGroup) ([]byte, error) {
+
+	// Initialize the gameSlices object which will be passed
+	// into the html template file
+	data := htmlData{
+		FinishedGameGroups: finishedGameGroups,
+	}
+
+	funcs := template.FuncMap{
+		"add":         add,
+		"subtract":    subtract,
+		"getIndexes":  getIndexes,
+		"monthString": monthString,
+	}
+
+	// Parse the HTML template file
+	tmplt, err := template.New("gamesForMonth").Funcs(funcs).Parse(gamesForMonthHTMLTemplate)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse file template: %w", err)
 	}

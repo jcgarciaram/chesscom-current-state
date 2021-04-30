@@ -179,6 +179,8 @@ type gameGroup struct {
 	Year           int
 	ChessGames     []chessGame
 	UserStatistics []userStats
+
+	OverallNoGamesFound bool
 }
 
 type gameGroupsByYearMonthDesc []gameGroup
@@ -209,6 +211,59 @@ func getUnfinishedGamesForUsers(users []string) []gameGroup {
 	}
 
 	return groupGamesForUsersByMonth(users, allGames)
+}
+
+func getFinishedGamesForUsersForYearMonth(users []string, year, month int) (*gameGroup, int, int) {
+	// Loop through all users that are in the chess club
+	// and get all their finished games.
+	// This will include games against players not in the club
+	// which will be filtered out later.
+	allGames := []chessGame{}
+	nextYearMonthMap := make(map[string]int)
+
+	wg := sync.WaitGroup{}
+	mutex := sync.Mutex{}
+	for _, user := range users {
+		wg.Add(1)
+
+		go func(u string) {
+			defer wg.Done()
+			games, nextYearMonth, err := getUserFinishedGamesForYearMonth(u, year, month)
+			if err != nil {
+
+				log.Printf("%s\n", err)
+				return
+			}
+			mutex.Lock()
+			allGames = append(allGames, games...)
+			nextYearMonthMap[nextYearMonth]++
+			mutex.Unlock()
+		}(user)
+	}
+
+	wg.Wait()
+
+	maxYearMonth := "190001"
+	for yearMonth, count := range nextYearMonthMap {
+		if count > 1 && yearMonth > maxYearMonth {
+			maxYearMonth = yearMonth
+		}
+	}
+
+	nextYear := 0
+	nextMonth := 0
+
+	if maxYearMonth != "190001" {
+		nextYear, _ = strconv.Atoi(maxYearMonth[:4])
+		nextMonth, _ = strconv.Atoi(maxYearMonth[4:])
+	}
+
+	gameGroups := groupGamesForUsersByMonth(users, allGames)
+	if len(gameGroups) == 0 {
+		return nil, nextYear, nextMonth
+	}
+
+	return &gameGroups[0], nextYear, nextMonth
 }
 
 func getFinishedGamesForUsers(users []string) []gameGroup {

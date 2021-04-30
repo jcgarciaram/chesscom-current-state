@@ -25,6 +25,13 @@ var routes = []route{
 	},
 
 	{
+		name:        "getGamesForMonthHTML",
+		method:      "GET",
+		pattern:     "/monthgames",
+		handlerFunc: getGamesForMonthHTML,
+	},
+
+	{
 		name:        "getFaviconHandler",
 		method:      "GET",
 		pattern:     "/favicon.ico",

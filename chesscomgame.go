@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -110,34 +111,55 @@ func getUserUnfinishedGames(username string) ([]chessGame, error) {
 	return chessGames, nil
 }
 
+func getUserFinishedGamesForYearMonth(username string, year, month int) ([]chessGame, string, error) {
+	archives, err := getUserArchivalURLs(username)
+	if err != nil {
+		return []chessGame{}, "", fmt.Errorf("could not get user archival urls %s: %w", username, err)
+	}
+
+	yearMonthStringToFind := fmt.Sprintf("%04d%02d", year, month)
+
+	urlForYearMonthToFind := ""
+	maxYearMonthPriorToFind := "190001"
+	for _, archiveURL := range archives.Archives {
+		urlSplit := strings.Split(archiveURL, "/")
+		if len(urlSplit) < 2 {
+			continue
+		}
+
+		yearString := urlSplit[len(urlSplit)-2]
+		monthString := urlSplit[len(urlSplit)-1]
+
+		currYearMonthString := fmt.Sprintf("%04s%02s", yearString, monthString)
+
+		if yearMonthStringToFind == currYearMonthString {
+			urlForYearMonthToFind = archiveURL
+		}
+
+		if currYearMonthString < yearMonthStringToFind && currYearMonthString > maxYearMonthPriorToFind {
+			maxYearMonthPriorToFind = currYearMonthString
+		}
+	}
+
+	games := []chessGame{}
+	if urlForYearMonthToFind != "" {
+		games, err = getFinishedGamesWithURL(username, urlForYearMonthToFind)
+		if err != nil {
+			return []chessGame{}, "", fmt.Errorf("could not get finished games with url %s: %w", username, err)
+		}
+	}
+
+	return games, maxYearMonthPriorToFind, nil
+}
+
 // Call chess.com API to get the finished games for the passed username.
 // This function will also go ahead and reag the PGN for the game
 // and populate ChessGame field on game struct.
 func getUserFinishedGames(username string) ([]chessGame, error) {
 
-	c := &http.Client{
-		Timeout: time.Second * 5,
-	}
-
-	// Get archival url games from chess.com API
-	res, err := c.Get(fmt.Sprintf("https://api.chess.com/pub/player/%s/games/archives", username))
+	archives, err := getUserArchivalURLs(username)
 	if err != nil {
-		return []chessGame{}, fmt.Errorf("could not get archives games for username %s: %w", username, err)
-	}
-
-	defer res.Body.Close()
-
-	// get the response body
-	resBody, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return []chessGame{}, fmt.Errorf("could not read response body for archives for username %s: %w", username, err)
-	}
-
-	// Unmarshal response body to struct above
-	archives := archiveResponse{}
-	err = json.Unmarshal(resBody, &archives)
-	if err != nil {
-		return []chessGame{}, fmt.Errorf("could not unmarshal response body for archives for username %s: %w", username, err)
+		return []chessGame{}, fmt.Errorf("could not get user archival urls %s: %w", username, err)
 	}
 
 	chessGames := []chessGame{}
@@ -173,6 +195,35 @@ func getUserFinishedGames(username string) ([]chessGame, error) {
 	wg.Wait()
 
 	return chessGames, nil
+}
+
+func getUserArchivalURLs(username string) (archiveResponse, error) {
+	c := &http.Client{
+		Timeout: time.Second * 5,
+	}
+
+	// Get archival url games from chess.com API
+	res, err := c.Get(fmt.Sprintf("https://api.chess.com/pub/player/%s/games/archives", username))
+	if err != nil {
+		return archiveResponse{}, fmt.Errorf("could not get archives games for username %s: %w", username, err)
+	}
+
+	defer res.Body.Close()
+
+	// get the response body
+	resBody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return archiveResponse{}, fmt.Errorf("could not read response body for archives for username %s: %w", username, err)
+	}
+
+	// Unmarshal response body to struct above
+	archives := archiveResponse{}
+	err = json.Unmarshal(resBody, &archives)
+	if err != nil {
+		return archiveResponse{}, fmt.Errorf("could not unmarshal response body for archives for username %s: %w", username, err)
+	}
+
+	return archives, nil
 }
 
 func getFinishedGamesWithURL(username, url string) ([]chessGame, error) {

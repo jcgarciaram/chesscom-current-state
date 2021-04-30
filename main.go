@@ -26,6 +26,8 @@ func main() {
 			Handler(handler)
 	}
 
+	router.PathPrefix("/website/").Handler(http.StripPrefix("/website/", getAsset("website")))
+
 	port := ":8889"
 	server := &http.Server{
 		Addr: port,
