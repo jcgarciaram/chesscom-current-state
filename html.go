@@ -30,13 +30,12 @@ type htmlData struct {
 
 // getIndexHTMLBytes takes a slice of games and returns an HTML
 // webpage using index.html as a template file.
-func getIndexHTMLBytes(currentGameGroups []gameGroup, finishedGameGroups []gameGroup) ([]byte, error) {
+func getIndexHTMLBytes(currentGameGroups []gameGroup) ([]byte, error) {
 
 	// Initialize the gameSlices object which will be passed
 	// into the html template file
 	data := htmlData{
-		CurrGameGroups:     currentGameGroups,
-		FinishedGameGroups: finishedGameGroups,
+		CurrGameGroups: currentGameGroups,
 	}
 
 	funcs := template.FuncMap{

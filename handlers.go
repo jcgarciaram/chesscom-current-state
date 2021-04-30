@@ -131,10 +131,9 @@ func getGamesForMonthHTML(w http.ResponseWriter, r *http.Request) {
 func getHomepage(w http.ResponseWriter, r *http.Request) {
 
 	unfinishedGameGroups := getUnfinishedGamesForUsers(usernames)
-	finishedGameGroups := getFinishedGamesForUsers(usernames)
 
 	// Finally, get HTML page to display the selectGames
-	htmlBytes, err := getIndexHTMLBytes(unfinishedGameGroups, finishedGameGroups)
+	htmlBytes, err := getIndexHTMLBytes(unfinishedGameGroups)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("There was an error processing your request: %s", err), http.StatusInternalServerError)
 		return
