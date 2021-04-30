@@ -5,7 +5,7 @@
 
     // get the monthGames from API
     const getMonthGames = async (year, month) => {
-        const API_URL = `http://localhost:8889/monthgames?year=${year}&month=${month}`;
+        const API_URL = `https://chess-ajc.piposplace.com/monthgames?year=${year}&month=${month}`;
         const response = await fetch(API_URL);
         // handle 404
         if (!response.ok) {
