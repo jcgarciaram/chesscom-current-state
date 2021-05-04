@@ -266,7 +266,9 @@ func getFinishedGamesForUsersForYearMonth(users []string, year, month int) (*gam
 	return &gameGroups[0], nextYear, nextMonth
 }
 
-func getFinishedGamesForUsers(users []string) []gameGroup {
+// getAllFinishedGamesForUsers does what it's name says.
+// Use with caution. Can take a long time to return.
+func getAllFinishedGamesForUsers(users []string) []gameGroup {
 	// Loop through all users that are in the chess club
 	// and get all their finished games.
 	// This will include games against players not in the club

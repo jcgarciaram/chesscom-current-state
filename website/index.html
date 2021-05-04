@@ -114,9 +114,9 @@
         <div class="w3-row-padding w3-padding-16 w3-center" id="games">
             {{range .ChessGames}}
             <div class="w3-third">
-                <h3>{{ .PgnParsed.Black }}</h3>
+                <h3>{{ .PgnParsed.Black }} &#9823;</h3>
                 <img src="data:image/svg+xml;base64,{{.Image}}"></p>
-                <h3>{{ .PgnParsed.White }}</h3>
+                <h3>&#9817; {{ .PgnParsed.White }}</h3>
                 <hr>
             </div>
             {{end}}
