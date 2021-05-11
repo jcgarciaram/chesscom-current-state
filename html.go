@@ -15,7 +15,7 @@ var (
 	//go:embed website/gamesForMonth.html
 	gamesForMonthHTMLTemplate string
 
-	//go:embed website/images/favicon.ico
+	//go:embed website/img/favicon.ico
 	faviconFile []byte
 )
 

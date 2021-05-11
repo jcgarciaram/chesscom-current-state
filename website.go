@@ -8,8 +8,8 @@ import (
 	"path"
 )
 
-//go:embed website/js
-var JSAssets embed.FS
+//go:embed website
+var WebsiteAssets embed.FS
 
 // fsFunc is short-hand for constructing a http.FileSystem
 // implementation
@@ -27,8 +27,12 @@ func getAsset(root string) http.Handler {
 	handler := fsFunc(func(name string) (fs.File, error) {
 		assetPath := path.Join(root, name)
 
-		return JSAssets.Open(assetPath)
+		return WebsiteAssets.Open(assetPath)
 	})
 
 	return http.FileServer(http.FS(handler))
+}
+
+func websiteFolderAssetHandler() http.Handler {
+	return http.StripPrefix("", getAsset("website"))
 }

@@ -113,14 +113,21 @@ func getGamesForMonthHTML(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	allChessGames := make([]chessGame, 0)
+	for _, gameGroup := range finalFinishedGameGroups {
+		allChessGames = append(allChessGames, gameGroup.ChessGames...)
+	}
+
 	ret := struct {
-		HTML      string `json:"html"`
-		NextYear  int    `json:"next_year"`
-		NextMonth int    `json:"next_month"`
+		HTML      string      `json:"html"`
+		NextYear  int         `json:"next_year"`
+		NextMonth int         `json:"next_month"`
+		Games     []chessGame `json:"games"`
 	}{
 		HTML:      string(htmlBytes),
 		NextYear:  nextYear,
 		NextMonth: nextMonth,
+		Games:     allChessGames,
 	}
 
 	if err := json.NewEncoder(w).Encode(ret); err != nil {

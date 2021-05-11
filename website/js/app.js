@@ -3,9 +3,25 @@
     const monthGamesEl = document.querySelector('.monthGames');
     const loaderEl = document.querySelector('.loader');
 
+    const populateChessboard = (className, fenString) => {
+        console.log('hello', className, fenString)
+        classNameForQuery = '.' + className
+        const board2El = document.querySelector(classNameForQuery);
+        window.Chessboard(board2El, fenString);
+    }
+
+    const renderChessboard = (games) => {
+        for (i = 0; i < games.length; i++) {
+            let game = games[i]
+            populateChessboard(game.chess_game_id, game.fen)
+        }
+    }
+
+
+
     // get the monthGames from API
     const getMonthGames = async (year, month) => {
-        const API_URL = `https://chess-ajc.piposplace.com/monthgames?year=${year}&month=${month}`;
+        const API_URL = `http://localhost:8889/monthgames?year=${year}&month=${month}`;
         const response = await fetch(API_URL);
         // handle 404
         if (!response.ok) {
@@ -16,12 +32,16 @@
 
     // show the monthGames
     const showMonthGames = (html) => {
-        const monthGameEl = document.createElement('blockMonthGame');
-        monthGameEl.classList.add('monthGame');
 
-        monthGameEl.innerHTML = html;
-        monthGamesEl.appendChild(monthGameEl);
+        return new Promise(function (resolve, reject) {
 
+            const monthGameEl = document.createElement('blockMonthGame');
+            monthGameEl.classList.add('monthGame');
+
+            monthGameEl.innerHTML = html;
+            monthGamesEl.appendChild(monthGameEl);
+
+        })
     };
 
     const hideLoader = () => {
@@ -50,7 +70,7 @@
                     // call the API to get monthGames
                     const response = await getMonthGames(year, month);
                     // show monthGames
-                    showMonthGames(response.html);
+                    showMonthGames(response.html).then(renderChessboard(response.games));
                     // update the year and month
                     next_year = response.next_year;
                     next_month = response.next_month;

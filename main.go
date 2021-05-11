@@ -26,7 +26,9 @@ func main() {
 			Handler(handler)
 	}
 
-	router.PathPrefix("/website/").Handler(http.StripPrefix("/website/", getAsset("website")))
+	router.PathPrefix("/js/").Handler(websiteFolderAssetHandler())
+	router.PathPrefix("/img/").Handler(websiteFolderAssetHandler())
+	router.PathPrefix("/css/").Handler(websiteFolderAssetHandler())
 
 	port := ":8889"
 	server := &http.Server{

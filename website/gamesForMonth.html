@@ -42,7 +42,7 @@
             {{if .PgnParsed.BlackAgreed}} &#129309;{{end}}
             {{if .PgnParsed.BlackInsufficient}} &#129335;{{end}}
         </h5>
-        <img src="data:image/svg+xml;base64,{{.Image}}"></p>
+        <div class="{{.ID}}" style="width: 370px"></div>
         <h5>{{if .PgnParsed.WhiteWon}}&#128081; {{end}}
             {{if .PgnParsed.WhiteResigned}}&#127987;&#65039; {{end}}
             {{if .PgnParsed.WhiteWasCheckmated}}&#129301; {{end}}

@@ -102,7 +102,6 @@
             </div>
         </div>
     </div>
-
     <div class="w3-main w3-content w3-padding" style="max-width:1200px;margin-top:100px">
         <h1>Current Games</h1>
         {{ $gameGroupsLength := len .CurrGameGroups}}
@@ -139,7 +138,11 @@
             <div></div>
         </div>
     </div>
-    <script src="website/js/app.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="js/chessboard-1.0.0.min.js"></script>
+    <script src="js/app.js"></script>
+    <link rel="stylesheet" href="css/chessboard-1.0.0.min.css">
+
 
 
 </body>

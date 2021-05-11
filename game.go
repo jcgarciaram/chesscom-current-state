@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/notnil/chess"
 	"github.com/notnil/chess/image"
 )
@@ -40,11 +41,13 @@ func (a chessGamesByEndTimeDesc) Less(i, j int) bool {
 }
 
 type chessGame struct {
-	ChessComFinishedGame *chessComFinishedGame
-	ChessGame            *chess.Game `json:"-"`
-	PgnParsed            pgnParsed   `json:"-"`
-	URL                  string      `json:"-"`
-	Image                string      `json:"-"`
+	ID                   string                `json:"chess_game_id"`
+	FEN                  string                `json:"fen"`
+	ChessComFinishedGame *chessComFinishedGame `json:"-"`
+	ChessGame            *chess.Game           `json:"-"`
+	PgnParsed            pgnParsed             `json:"-"`
+	URL                  string                `json:"-"`
+	Image                string                `json:"-"`
 }
 
 type pgnParsed struct {
@@ -166,7 +169,11 @@ func getChessGame(pgnString string) (chessGame, error) {
 		parsedPgn.BlackWon = true
 	}
 
+	gameID, _ := uuid.NewRandom()
+
 	game := chessGame{
+		ID:        gameID.String(),
+		FEN:       parsedChessGame.FEN(),
 		ChessGame: parsedChessGame,
 		PgnParsed: parsedPgn,
 	}
