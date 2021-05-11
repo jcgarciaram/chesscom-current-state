@@ -15,7 +15,8 @@ var (
 		"PipoGambit",
 		"dalmu7",
 		"elcubanoaj",
-		// "cdalmeida",
+		"cdalmeida",
+		"maximuni",
 	}
 )
 
