@@ -22,5 +22,10 @@
             <string>IPv4</string>
         </dict>
     </dict>
+    <key>StandardOutPath</key>
+    <key>StandardOutPath</key>
+    <string>/Users/developerpipo/services/log/chess-club-out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/developerpipo/services/log/chess-club-errr.log</string>
 </dict>
 </plist>
