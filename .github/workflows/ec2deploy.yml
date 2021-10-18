@@ -25,7 +25,7 @@ jobs:
 
       # build binaries
       - name: build chess-club binary
-        run: go build -o cmd/chess-club
+        run: env GOOS=darwin GOARCH=amd64 go build -o cmd/chess-club
 
       # SSH pem file stuff
       - name: create pem file from github secret to be used to SSH into server
