@@ -48,7 +48,7 @@ jobs:
         run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 'launchctl unload ~/Library/LaunchAgents/com.piposplace.chess-club.plist'
 
       - name: upload updated com.piposplace.chess-club.plist
-        run: sftp -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 'put deploy/launchd/com.piposplace.chess-club.plist ~/Library/LaunchAgents/.'
+        run: sftp -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 <<< $'put ./deploy/launchd/com.piposplace.chess-club.plist ~/Library/LaunchAgents/.'
 
       - name: load chess-club agent (plist file)
         run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 'launchctl load ~/Library/LaunchAgents/com.piposplace.chess-club.plist'
