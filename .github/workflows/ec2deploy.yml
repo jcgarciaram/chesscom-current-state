@@ -9,7 +9,7 @@ on:
 
 jobs:
   linux:
-    name: Deploy latest chesscom-curr-state backend
+    name: Deploy latest chess-club backend
     runs-on: ubuntu-latest
 
     steps:
@@ -24,22 +24,34 @@ jobs:
         run: mkdir cmd
 
       # build binaries
-      - name: build chesscom-curr-state binary
-        run: go build -o cmd/chesscom-curr-state
+      - name: build chess-club binary
+        run: go build -o cmd/chess-club
 
       # SSH pem file stuff
-      - name: create pem file from github secret to be used to SSH into thefancyapi EC2 instance
+      - name: create pem file from github secret to be used to SSH into server
         run: echo '${{ secrets.ACTIONS_PRIVATE_RSA_KEY }}' >> rsa.pem
 
       - name: update permissions on pem file
         run: chmod 400 rsa.pem
 
       # restart service
-      - name: remove chesscom-curr-state binary leftover from previous run in chesscom-curr-state EC2 instance
-        run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 'rm services/chesscom-curr-state || true'
+      - name: remove chess-club binary leftover from previous run in server
+        run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 'rm services/chess-club || true'
 
-      - name: upload chesscom-curr-state binary
-        run: sftp -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 <<< $'put ./cmd/chesscom-curr-state services/.'
+      - name: upload chess-club binary
+        run: sftp -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 <<< $'put ./cmd/chess-club services/.'
 
-      - name: restart chesscom-curr-state service
-        run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 'sudo service chesscom-curr-state restart'
+      - name: stop chess-club service
+        run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 'launchctl stop chess-club'
+
+      - name: unload chess-club agent (plist file)
+        run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 'launchctl unload ~/Library/LaunchAgents/com.piposplace.chess-club.plist'
+
+      - name: upload updated com.piposplace.chess-club.plist
+        run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 'put deploy/launchd/com.piposplace.chess-club.plist ~/Library/LaunchAgents/.'
+
+      - name: load chess-club agent (plist file)
+        run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 'launchctl load ~/Library/LaunchAgents/com.piposplace.chess-club.plist'
+
+      - name: start chess-club service
+        run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 'launchctl start chess-club'
