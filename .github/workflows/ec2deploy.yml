@@ -42,7 +42,7 @@ jobs:
         run: sftp -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 <<< $'put ./cmd/chess-club services/.'
 
       - name: stop chess-club service
-        run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 'launchctl stop chess-club'
+        run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 'launchctl stop com.piposplace.chess-club'
 
       - name: unload chess-club agent (plist file)
         run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 'launchctl unload ~/Library/LaunchAgents/com.piposplace.chess-club.plist'
@@ -54,4 +54,4 @@ jobs:
         run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 'launchctl load ~/Library/LaunchAgents/com.piposplace.chess-club.plist'
 
       - name: start chess-club service
-        run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 'launchctl start chess-club'
+        run: ssh -oStrictHostKeyChecking=no -i ./rsa.pem developerpipo@162.207.34.104 'launchctl start com.piposplace.chess-club'
