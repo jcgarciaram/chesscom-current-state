@@ -10,7 +10,14 @@
     </array>
     <key>KeepAlive</key>
     <true/>
-    <key>SockServiceName</key>
-    <string>8889</string>
+    <key>Listeners</key>
+    <array>
+        <dict>
+            <key>SockNodeName</key>
+            <string>127.0.0.1</string>
+            <key>SockServiceName</key>
+            <string>8889</string>
+        </dict>
+    </array>
 </dict>
 </plist>
